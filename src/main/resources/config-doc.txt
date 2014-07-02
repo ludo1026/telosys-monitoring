@@ -1,0 +1,38 @@
+TELOSYS WEB TOOLS CONFIGURATION 
+
+1) Add the jar file in the web project libraries 
+Just copy it in the "WEB-INF/lib" folder
+
+
+2) Configure the components 
+
+* RequestsMonitor filter configuration :
+
+Just declare the filter in the "web.xml" file as follow :
+
+  <filter>
+    <filter-name>Monitor</filter-name>
+    <filter-class>org.telosys.webtools.monitoring.RequestsMonitor</filter-class>    
+    <init-param>
+    	<param-name>duration</param-name> <!-- duration threshold in ms  -->
+    	<param-value>1000</param-value> <!-- default is 1000 ms ( 1 sec )  -->
+    </init-param>
+    <init-param>
+    	<param-name>logsize</param-name> <!-- log buffer size in memory (number of lines)  -->
+    	<param-value>100</param-value> <!-- default is 100 -->
+    </init-param>
+    <init-param>
+    	<param-name>reporting</param-name> <!-- URL path for monitoring reporting (in the browser) -->
+    	<param-value>/monitoring</param-value> <!-- default is "/monitor" -->
+    </init-param>
+    <init-param>
+    	<param-name>trace</param-name>
+    	<param-value>false</param-value> <!-- default is false -->
+    </init-param>
+  </filter>
+  
+  <filter-mapping>
+    <filter-name>Monitor</filter-name>
+    <url-pattern>/*</url-pattern>
+  </filter-mapping>
+
