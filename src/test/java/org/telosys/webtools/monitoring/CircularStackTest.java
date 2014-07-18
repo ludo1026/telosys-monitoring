@@ -37,7 +37,13 @@ public class CircularStackTest {
 		assertEquals("2", results.get(0));
 		assertEquals("3", results.get(1));
 		assertEquals("4", results.get(2));
-		
+
+		circularStack.push("5");
+		results = circularStack.getAllAscendant();
+		assertEquals(3, results.size());
+		assertEquals("3", results.get(0));
+		assertEquals("4", results.get(1));
+		assertEquals("5", results.get(2));
 		
 	}
 
@@ -70,6 +76,13 @@ public class CircularStackTest {
 		assertEquals("4", results.get(0));
 		assertEquals("3", results.get(1));
 		assertEquals("2", results.get(2));
+
+		circularStack.push("5");
+		results = circularStack.getAllDescendant();
+		assertEquals(3, results.size());
+		assertEquals("5", results.get(0));
+		assertEquals("4", results.get(1));
+		assertEquals("3", results.get(2));
 		
 		
 	}
