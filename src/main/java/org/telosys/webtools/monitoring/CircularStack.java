@@ -12,28 +12,24 @@ public class CircularStack {
 	}
 	
 	public void push(String value) {
-		synchronized(arrays) {
-			
-			this.arrays[this.nextIndex] = value;
-			
-			this.nextIndex++;
-			if(this.nextIndex >= this.size) {
-				this.nextIndex = 0;
-			}
-			
+		int index = getNextIndice();
+		this.arrays[index] = value;
+	}
+	
+	public synchronized int getNextIndice() {
+		this.nextIndex++;
+		if(this.nextIndex >= this.size) {
+			this.nextIndex = 0;
 		}
+		return this.nextIndex;
 	}
 	
 	public String[] getAll() {
-		synchronized(arrays) {
-		
-			String[] results = new String[this.size];
-			for(int i=0; i<this.size; i++) {
-				results[i] = this.arrays[i];
-			}
-			return results;
-			
+		String[] results = new String[this.size];
+		for(int i=0; i<this.size; i++) {
+			results[i] = this.arrays[i];
 		}
+		return results;
 	}
 	
 }
