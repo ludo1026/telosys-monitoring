@@ -17,6 +17,8 @@ package org.telosys.webtools.monitoring;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -50,7 +52,10 @@ public class RequestsMonitor implements Filter {
 	protected long   countAllRequest        = 0 ; 
 	protected long   countLongTimeRequests  = 0 ; 
 	
-	protected CircularStack logLines = new CircularStack(DEFAULT_LOG_SIZE); 
+	protected CircularStack logLines = new CircularStack(DEFAULT_LOG_SIZE);
+	
+	protected String ipAddress;
+	protected String hostname;
 	
     /**
      * Default constructor. 
@@ -90,7 +95,27 @@ public class RequestsMonitor implements Filter {
 		
 		initializationDate = format( new Date() );
 		trace ("MONITOR INITIALIZED. durationThreshold = " + durationThreshold + ", reportingReqPath = " + reportingReqPath );
-
+		
+		InetAddress adrLocale = getLocalHost();
+		if(adrLocale == null) {
+			ipAddress = "unknown";
+			hostname = "unknwon";
+		} else {
+			ipAddress = adrLocale.getHostAddress();
+			hostname = adrLocale.getHostName();
+		}
+	}
+	
+	/**
+	 * Return IP address and hostname.
+	 * @return IP address and hostname
+	 */
+	protected InetAddress getLocalHost() {
+		try {
+			return InetAddress.getLocalHost();
+		} catch (UnknownHostException e) {
+			return null;
+		}
 	}
 	
 	/**
@@ -197,6 +222,8 @@ public class RequestsMonitor implements Filter {
 			out = response.getWriter();
 
 			out.println("Requests monitoring status (" + date + ") ");
+			out.println("IP address : " + ipAddress);
+			out.println("Hostname : " + hostname );
 			out.println(" ");
 			
 			out.println("Duration threshold : " + durationThreshold );

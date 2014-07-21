@@ -8,6 +8,7 @@ import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,8 +27,13 @@ public class RequestsMonitorTest {
 	@Test
 	public void initDefaults() throws ServletException {
 		// Given
-		RequestsMonitor requestsMonitor = new RequestsMonitor();
+		RequestsMonitor requestsMonitor = spy(new RequestsMonitor());
 
+		InetAddress adrLocale = mock(InetAddress.class);
+		when(requestsMonitor.getLocalHost()).thenReturn(adrLocale);
+		when(adrLocale.getAddress()).thenReturn("10.11.12.13".getBytes());
+		when(adrLocale.getHostName()).thenReturn("hostname");
+		
 		FilterConfig filterConfig = mock(FilterConfig.class);
 		
 		// When
@@ -38,12 +44,19 @@ public class RequestsMonitorTest {
 		requestsMonitor.logSize = RequestsMonitor.DEFAULT_LOG_SIZE;
 		requestsMonitor.reportingReqPath = "/monitor";
 		requestsMonitor.traceFlag = false;
+		requestsMonitor.ipAddress = "10.11.12.13";
+		requestsMonitor.hostname = "hostname";
 	}
 	
 	@Test
 	public void initCustomized() throws ServletException {
 		// Given
-		RequestsMonitor requestsMonitor = new RequestsMonitor();
+		RequestsMonitor requestsMonitor = spy(new RequestsMonitor());
+
+		InetAddress adrLocale = mock(InetAddress.class);
+		when(requestsMonitor.getLocalHost()).thenReturn(adrLocale);
+		when(adrLocale.getAddress()).thenReturn("10.11.12.13".getBytes());
+		when(adrLocale.getHostName()).thenReturn("hostname");
 		
 		FilterConfig filterConfig = mock(FilterConfig.class);
 		when(filterConfig.getInitParameter("duration")).thenReturn("200");
@@ -59,6 +72,8 @@ public class RequestsMonitorTest {
 		requestsMonitor.logSize = 300;
 		requestsMonitor.reportingReqPath = "/monitor2";
 		requestsMonitor.traceFlag = true;
+		requestsMonitor.ipAddress = "10.11.12.13";
+		requestsMonitor.hostname = "hostname";
 	}
 	
 	@Test
@@ -126,6 +141,9 @@ public class RequestsMonitorTest {
 		verify(response).setHeader("Pragma", "no-cache");
 		verify(response).setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
 		verify(response).setDateHeader ("Expires", 0);
+		
+		verify(out).println("IP address : " + requestsMonitor.ipAddress);
+		verify(out).println("Hostname : " + requestsMonitor.hostname );
 		verify(out).println("Duration threshold : " + requestsMonitor.durationThreshold );
 		verify(out).println("Log in memory size : " + requestsMonitor.logSize + " lines");
 		verify(out).println("Initialization date/time : " + requestsMonitor.initializationDate );
