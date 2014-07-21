@@ -7,6 +7,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.servlet.FilterChain;
@@ -99,6 +101,39 @@ public class RequestsMonitorTest {
 		List<String> lines = requestsMonitor.logLines.getAllAscendant();
 		assertEquals("1970/01/01 01:00:00 [ 1 / 1 ] 500 ms : http://request1.url?query1", lines.get(0));
 		assertEquals("1970/01/01 01:00:01 [ 2 / 2 ] 500 ms : http://request2.url?query2", lines.get(1));
+	}
+	
+	@Test
+	public void testReporting() throws IOException {
+		// Given
+		RequestsMonitor requestsMonitor = spy(new RequestsMonitor());
+		
+		requestsMonitor.logLines = mock(CircularStack.class);
+		List<String> lines = new ArrayList<String>();
+		when(requestsMonitor.logLines.getAllAscendant()).thenReturn(lines);
+		lines.add("line 1");
+		lines.add("line 2");
+		
+		HttpServletResponse response = mock(HttpServletResponse.class);
+		PrintWriter out = mock(PrintWriter.class);
+		when(response.getWriter()).thenReturn(out);
+		
+		// When
+		requestsMonitor.reporting(response);
+		
+		// Then
+		verify(response).setContentType("text/plain");
+		verify(response).setHeader("Pragma", "no-cache");
+		verify(response).setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
+		verify(response).setDateHeader ("Expires", 0);
+		verify(out).println("Duration threshold : " + requestsMonitor.durationThreshold );
+		verify(out).println("Log in memory size : " + requestsMonitor.logSize + " lines");
+		verify(out).println("Initialization date/time : " + requestsMonitor.initializationDate );
+		verify(out).println("Total requests count     : " + requestsMonitor.countAllRequest);
+		verify(out).println("Long time requests count : " + requestsMonitor.countLongTimeRequests );
+		verify(out).println("" + lines.size() + " last long time requests : " );
+		verify(out).println("line 1");
+		verify(out).println("line 2");
 	}
 	
 }
