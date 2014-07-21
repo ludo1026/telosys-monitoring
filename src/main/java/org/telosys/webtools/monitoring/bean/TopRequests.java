@@ -17,6 +17,10 @@ public class TopRequests {
 		requests = new Request[size];
 	}
 	
+	public int getSize() {
+		return requests.length;
+	}
+	
 	public void add(Request request) {
 		if(mustBeInsert(request)) {
 			int posMinimum = getMinimumPosition();

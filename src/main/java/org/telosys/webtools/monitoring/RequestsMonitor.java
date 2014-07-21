@@ -24,6 +24,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -36,6 +37,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.telosys.webtools.monitoring.bean.CircularStack;
 import org.telosys.webtools.monitoring.bean.Request;
+import org.telosys.webtools.monitoring.bean.TopRequests;
 
 /**
  * Servlet Filter for Http Requests Monitor
@@ -56,6 +58,7 @@ public class RequestsMonitor implements Filter {
 	protected long   countLongTimeRequests  = 0 ; 
 	
 	protected CircularStack logLines = new CircularStack(DEFAULT_LOG_SIZE);
+	protected TopRequests topRequests = new TopRequests(20);
 	
 	protected String ipAddress;
 	protected String hostname;
@@ -192,6 +195,7 @@ public class RequestsMonitor implements Filter {
 		request.setServletPath(httpRequest.getServletPath());
 		
 		this.logLines.push(request);
+		this.topRequests.add(request);
 		
 		trace(request);
 	}
@@ -233,6 +237,12 @@ public class RequestsMonitor implements Filter {
 			out.println("" + lines.size() + " last long time requests : " );
 			for ( Request line : lines ) {
 				out.println(line.toString());
+			}
+			
+			List<Request> requests = topRequests.getAllDescending(); 
+			out.println("Top " + topRequests.getSize() + " of last long time requests : " );
+			for ( Request request : requests ) {
+				out.println(request.toString());
 			}
 			out.close();
 		} catch (IOException e) {
