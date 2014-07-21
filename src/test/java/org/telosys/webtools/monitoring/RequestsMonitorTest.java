@@ -21,6 +21,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+import org.telosys.webtools.monitoring.bean.CircularStack;
+import org.telosys.webtools.monitoring.bean.Request;
 
 public class RequestsMonitorTest {
 	
@@ -113,9 +115,9 @@ public class RequestsMonitorTest {
 		verify(chain).doFilter(httpRequest1, response);
 		verify(chain).doFilter(httpRequest2, response);
 		
-		List<String> lines = requestsMonitor.logLines.getAllAscendant();
-		assertEquals("1970/01/01 01:00:00 [ 1 / 1 ] 500 ms : http://request1.url?query1", lines.get(0));
-		assertEquals("1970/01/01 01:00:01 [ 2 / 2 ] 500 ms : http://request2.url?query2", lines.get(1));
+		List<Request> lines = requestsMonitor.logLines.getAllAscendant();
+		assertEquals("1970/01/01 01:00:00 [500 ms] : http://request1.url?query1", lines.get(0).toString());
+		assertEquals("1970/01/01 01:00:01 [500 ms] : http://request2.url?query2", lines.get(1).toString());
 	}
 	
 	@Test
@@ -124,10 +126,24 @@ public class RequestsMonitorTest {
 		RequestsMonitor requestsMonitor = spy(new RequestsMonitor());
 		
 		requestsMonitor.logLines = mock(CircularStack.class);
-		List<String> lines = new ArrayList<String>();
+		List<Request> lines = new ArrayList<Request>();
 		when(requestsMonitor.logLines.getAllAscendant()).thenReturn(lines);
-		lines.add("line 1");
-		lines.add("line 2");
+		Request r1 = new Request();
+		lines.add(r1);
+		r1.setStartTime(11000);
+		r1.setElapsedTime(12);
+		r1.setPathInfo("pathInfo1");
+		r1.setQueryString("queryString1");
+		r1.setRequestURL("requestURL1");
+		r1.setServletPath("servletPath1");
+		Request r2 = new Request();
+		lines.add(r2);
+		r2.setStartTime(21000);
+		r2.setElapsedTime(22);
+		r2.setPathInfo("pathInfo2");
+		r2.setQueryString("queryString2");
+		r2.setRequestURL("requestURL2");
+		r2.setServletPath("servletPath2");
 		
 		HttpServletResponse response = mock(HttpServletResponse.class);
 		PrintWriter out = mock(PrintWriter.class);
@@ -150,8 +166,8 @@ public class RequestsMonitorTest {
 		verify(out).println("Total requests count     : " + requestsMonitor.countAllRequest);
 		verify(out).println("Long time requests count : " + requestsMonitor.countLongTimeRequests );
 		verify(out).println("" + lines.size() + " last long time requests : " );
-		verify(out).println("line 1");
-		verify(out).println("line 2");
+		verify(out).println("1970/01/01 01:00:11 [12 ms] : requestURL1?queryString1");
+		verify(out).println("1970/01/01 01:00:21 [22 ms] : requestURL2?queryString2");
 	}
 	
 }

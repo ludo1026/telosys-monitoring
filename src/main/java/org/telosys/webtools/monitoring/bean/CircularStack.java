@@ -1,4 +1,4 @@
-package org.telosys.webtools.monitoring;
+package org.telosys.webtools.monitoring.bean;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -6,16 +6,16 @@ import java.util.List;
 public class CircularStack {
 	
 	protected final int size;
-	protected final String[] arrays;
+	protected final Request[] arrays;
 	protected int nextIndex = 0;
 	protected boolean completed = false;
 	
 	public CircularStack(int size) {
 		this.size = size;
-		this.arrays = new String[size];
+		this.arrays = new Request[size];
 	}
 	
-	public void push(String value) {
+	public void push(Request value) {
 		int index = getNextIndice();
 		this.arrays[index] = value;
 	}
@@ -30,8 +30,8 @@ public class CircularStack {
 		return index;
 	}
 	
-	public synchronized List<String> getAllAscendant() {
-		List<String> results = new ArrayList<String>();
+	public synchronized List<Request> getAllAscendant() {
+		List<Request> results = new ArrayList<Request>();
 		int index = this.nextIndex;
 		boolean completed = this.completed;
 		if(completed) {
@@ -45,8 +45,8 @@ public class CircularStack {
 		return results;
 	}
 	
-	public synchronized List<String> getAllDescendant() {
-		List<String> results = new ArrayList<String>();
+	public synchronized List<Request> getAllDescendant() {
+		List<Request> results = new ArrayList<Request>();
 		int index = this.nextIndex;
 		boolean completed = this.completed;
 		for(int i=index-1; i>=0; i--) {

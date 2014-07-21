@@ -34,6 +34,9 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.telosys.webtools.monitoring.bean.CircularStack;
+import org.telosys.webtools.monitoring.bean.Request;
+
 /**
  * Servlet Filter for Http Requests Monitor
  * 
@@ -61,6 +64,12 @@ public class RequestsMonitor implements Filter {
      * Default constructor. 
      */
     public RequestsMonitor() {
+    }
+
+    protected final void trace(Request request) {
+    	if ( traceFlag ) {
+    		trace( "Logging line : " + request);
+    	}
     }
 
     protected final void trace(String msg) {
@@ -174,32 +183,17 @@ public class RequestsMonitor implements Filter {
 	}
 
 	protected final void logRequest(HttpServletRequest httpRequest, long startTime, long elapsedTime ) {
+		Request request = new Request();
+		request.setElapsedTime(elapsedTime);
+		request.setStartTime(startTime);
+		request.setPathInfo(httpRequest.getPathInfo());
+		request.setQueryString(httpRequest.getQueryString());
+		request.setRequestURL(httpRequest.getRequestURL().toString());
+		request.setServletPath(httpRequest.getServletPath());
 		
+		this.logLines.push(request);
 		
-		final String sStartTime = format( new Date(startTime) ) ;
-		
-		final StringBuilder sb = new StringBuilder();
-		sb.append( sStartTime );
-		sb.append(" [ ");
-		sb.append(countLongTimeRequests);
-		sb.append(" / ");
-		sb.append(countAllRequest);
-		sb.append(" ] ");
-		sb.append(elapsedTime);
-		sb.append(" ms : ");
-		sb.append(httpRequest.getRequestURL() );
-		String queryString = httpRequest.getQueryString() ;
-		if ( queryString != null ) {
-			sb.append("?"+queryString );
-		}
-		String line = sb.toString();
-		
-		logLine( line );
-	}
-	
-	protected final void logLine( String line ) {
-		trace( "Logging line : " + line );
-		logLines.push(line);
+		trace(request);
 	}
 	
 	/**
@@ -235,10 +229,10 @@ public class RequestsMonitor implements Filter {
 			out.println("Long time requests count : " + countLongTimeRequests );
 			out.println(" ");
 			
-			List<String> lines = logLines.getAllAscendant(); 
+			List<Request> lines = logLines.getAllAscendant(); 
 			out.println("" + lines.size() + " last long time requests : " );
-			for ( String line : lines ) {
-				out.println(line);
+			for ( Request line : lines ) {
+				out.println(line.toString());
 			}
 			out.close();
 		} catch (IOException e) {
