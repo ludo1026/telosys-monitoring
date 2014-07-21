@@ -21,6 +21,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.LinkedList;
+import java.util.List;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -49,7 +50,7 @@ public class RequestsMonitor implements Filter {
 	private long   countAllRequest        = 0 ; 
 	private long   countLongTimeRequests  = 0 ; 
 	
-	private final LinkedList<String> logLines = new LinkedList<String>(); 
+	private CircularStack logLines = new CircularStack(DEFAULT_LOG_SIZE); 
 	
     /**
      * Default constructor. 
@@ -73,6 +74,7 @@ public class RequestsMonitor implements Filter {
 
 		//--- Parameter : memory log size 
 		logSize = parseInt( filterConfig.getInitParameter("logsize"), DEFAULT_LOG_SIZE );
+		logLines = new CircularStack(logSize);
 
 		//--- Parameter : status report URI
 		String reportingParam = filterConfig.getInitParameter("reporting");
@@ -172,11 +174,7 @@ public class RequestsMonitor implements Filter {
 	
 	private final void logLine( String line ) {
 		trace( "Logging line : " + line );
-		
-		if ( logLines.size() > logSize ) {
-			logLines.removeFirst() ;
-		}
-		logLines.addLast(line);
+		logLines.push(line);
 	}
 	
 	/**
@@ -210,8 +208,9 @@ public class RequestsMonitor implements Filter {
 			out.println("Long time requests count : " + countLongTimeRequests );
 			out.println(" ");
 			
-			out.println("" + logLines.size() + " last long time requests : " );
-			for ( String line : logLines ) {
+			List<String> lines = logLines.getAllAscendant(); 
+			out.println("" + lines.size() + " last long time requests : " );
+			for ( String line : lines ) {
 				out.println(line);
 			}
 			out.close();
