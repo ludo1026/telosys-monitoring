@@ -38,19 +38,19 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class RequestsMonitor implements Filter {
 
-	private final static int DEFAULT_DURATION_THRESHOLD  = 1000 ; // 1 second 
-	private final static int DEFAULT_LOG_SIZE            =  100 ;
+	protected final static int DEFAULT_DURATION_THRESHOLD  = 1000 ; // 1 second 
+	protected final static int DEFAULT_LOG_SIZE            =  100 ;
 	
-	private int     durationThreshold     = DEFAULT_DURATION_THRESHOLD ; 
-	private String  reportingReqPath      = "/monitor" ; 
-	private int     logSize               = DEFAULT_LOG_SIZE ;
-	private boolean traceFlag             = false ;
+	protected int     durationThreshold     = DEFAULT_DURATION_THRESHOLD ; 
+	protected String  reportingReqPath      = "/monitor" ; 
+	protected int     logSize               = DEFAULT_LOG_SIZE ;
+	protected boolean traceFlag             = false ;
 	
-	private String initializationDate     = "???" ; 
-	private long   countAllRequest        = 0 ; 
-	private long   countLongTimeRequests  = 0 ; 
+	protected String initializationDate     = "???" ; 
+	protected long   countAllRequest        = 0 ; 
+	protected long   countLongTimeRequests  = 0 ; 
 	
-	private CircularStack logLines = new CircularStack(DEFAULT_LOG_SIZE); 
+	protected CircularStack logLines = new CircularStack(DEFAULT_LOG_SIZE); 
 	
     /**
      * Default constructor. 
@@ -58,7 +58,7 @@ public class RequestsMonitor implements Filter {
     public RequestsMonitor() {
     }
 
-    private final void trace(String msg) {
+    protected final void trace(String msg) {
     	if ( traceFlag ) {
     		System.out.println("[TRACE] : " + msg );
     	}    	
@@ -97,12 +97,12 @@ public class RequestsMonitor implements Filter {
 	 * @return current time in milliseconds
 	 *
 	 */
-	private long getTime() {
+	protected long getTime() {
 		// Uses System.nanoTime() if necessary (precision ++)
 		return System.currentTimeMillis();
 	}
 
-	private int parseInt(String s, int defaultValue) {
+	protected int parseInt(String s, int defaultValue) {
 		int v = defaultValue ;
 		if ( s != null ) {
 			try {
@@ -148,7 +148,7 @@ public class RequestsMonitor implements Filter {
 		}
 	}
 
-	private final void logRequest(HttpServletRequest httpRequest, long startTime, long elapsedTime ) {
+	protected final void logRequest(HttpServletRequest httpRequest, long startTime, long elapsedTime ) {
 		
 		
 		final String sStartTime = format( new Date(startTime) ) ;
@@ -172,7 +172,7 @@ public class RequestsMonitor implements Filter {
 		logLine( line );
 	}
 	
-	private final void logLine( String line ) {
+	protected final void logLine( String line ) {
 		trace( "Logging line : " + line );
 		logLines.push(line);
 	}
@@ -182,7 +182,7 @@ public class RequestsMonitor implements Filter {
 	 *   
 	 * @param response
 	 */
-	private final void reporting (HttpServletResponse response) {
+	protected final void reporting (HttpServletResponse response) {
 		
 		response.setContentType("text/plain");
 		
@@ -219,7 +219,7 @@ public class RequestsMonitor implements Filter {
 		}
 	}
 
-	private final String format ( Date date ) {
+	protected final String format ( Date date ) {
 		final DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 		return dateFormat.format( date ) ;
 	}
