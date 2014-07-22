@@ -49,7 +49,13 @@ public class TopRequests {
 		if(size <= 0) {
 			throw new IllegalStateException("size of top requests list must be greater than 0");
 		}
+		// Création du tableau des requêtes
 		requests = new Request[size];
+		// Le tableau des requêtes est vide : il n'est donc pas entièrement rempli
+		completed = false;
+		// Cas de départ : la première requête sera stockée dans la position 0 du tableau des requêtes
+		minimum = new ValuePosition();
+		minimum.position = 0;
 	}
 	
 	/**
@@ -57,20 +63,26 @@ public class TopRequests {
 	 * @param request Request
 	 */
 	public synchronized void add(Request request) {
-		if(minimum == null) {
-			requests[0] = request;
-			minimum = getMinimum();
-		} else {
-			if(minimum.position >= 0 && minimum.position < requests.length) {
-				if(minimum.value == null) {
-					requests[minimum.position] = request;
-					minimum = getMinimum();
-				}
-				else if(minimum.value <= request.getElapsedTime()) {
-					requests[minimum.position] = request;
-					minimum = getMinimum();
-				}
+		if(!completed) {
+			// Le tableau n'a pas été entièrement rempli : on met la requête dans une des cases libres du tableau
+			requests[minimum.position] = request;
+			// calcul de la position de la future requête à ajouter
+			if(minimum.position < requests.length-1) {
+				// Le tableau contient encore des espaces libres, on passe à la position suivante dans le tableau
+				minimum.position++;
+			} else {
+				// Le tableau ne contient plus d'espaces libres
+				// on indique que le tableau a été complété
+				completed = true;
+				// calcul de la position de la requête la plus courte qui sera remplacée par la future requête à ajouter
+				minimum = getMinimum();
 			}
+		}
+		else if(minimum.value <= request.getElapsedTime()) {
+			// La requête est plus longue que l'une des requêtes déjà présentes dans le tableau
+			requests[minimum.position] = request;
+			// calcul de la position de la requête la plus courte qui sera remplacée par la future requête à ajouter
+			minimum = getMinimum();
 		}
 	}
 	
@@ -79,21 +91,13 @@ public class TopRequests {
 	 * @return Value and position
 	 */
 	protected ValuePosition getMinimum() {
+		// Calcule la position et la durée d'exécution de la requête la plus courte dans le tableau des requêtes
 		ValuePosition minimum = new ValuePosition();
 		for(int pos=0; pos<requests.length; pos++) {
-			if(requests[pos] == null) {
-				minimum.position = pos;
-				minimum.value = null;
-				completed = false;
-				break;
-			}
 			if(minimum.value == null || requests[pos].getElapsedTime() < minimum.value) {
 				minimum.position = pos;
 				minimum.value = requests[pos].getElapsedTime();
 			}
-		}
-		if(minimum.position == null) {
-			completed = true;
 		}
 		return minimum;
 	}
@@ -102,7 +106,7 @@ public class TopRequests {
 	 * Return all stored requests by ascending
 	 * @return requests
 	 */
-	public List<Request> getAllAscending() {
+	public synchronized List<Request> getAllAscending() {
 		List<Request> all = new ArrayList<Request>();
 		for(Request request : requests) {
 			if(request != null) {
@@ -117,7 +121,7 @@ public class TopRequests {
 	 * Return all stored requests by descending
 	 * @return requests
 	 */
-	public List<Request> getAllDescending() {
+	public synchronized List<Request> getAllDescending() {
 		List<Request> all = new ArrayList<Request>();
 		for(Request request : requests) {
 			if(request != null) {

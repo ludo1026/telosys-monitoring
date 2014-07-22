@@ -224,6 +224,8 @@ public class RequestsMonitor implements Filter {
 		request.setQueryString(httpRequest.getQueryString());
 		request.setRequestURL(httpRequest.getRequestURL().toString());
 		request.setServletPath(httpRequest.getServletPath());
+		request.setCountAllRequest(countAllRequest);
+		request.setCountLongTimeRequests(countLongTimeRequests);
 		
 		this.logLines.add(request);
 		this.topRequests.add(request);
@@ -275,14 +277,14 @@ public class RequestsMonitor implements Filter {
 			out.println(" ");
 			out.println("Top longest requests : " );
 			for ( Request request : requests ) {
-				out.println(request.toString());
+				out.println(request.toStringWithoutCounting());
 			}
 			
 			requests = longestRequests.getAllDescending(); 
 			out.println(" ");
 			out.println("Longest requests : " );
 			for ( Request request : requests ) {
-				out.println(request.toString());
+				out.println(request.toStringWithoutCounting());
 			}
 			
 			out.close();

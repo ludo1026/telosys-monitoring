@@ -26,7 +26,7 @@ import java.util.Map;
 public class LongestRequests {
 	
 	/** Stored requests by their URL. */
-	private Map<String, Request> requestsByTimes = new HashMap<String, Request>();
+	private Map<String, Request> requestsByURLs = new HashMap<String, Request>();
 	/** Number of stored requests. */
 	private final int size;
 	/** URL of the request with the minimum execution time. */
@@ -47,25 +47,33 @@ public class LongestRequests {
 	 * If the request already exists, its execution time is updated.  
 	 * @param request Request.
 	 */
-	public void add(Request request) {
+	public synchronized void add(Request request) {
 		if(minTime == null) {
-			requestsByTimes.put(request.getURL(), request);
-			calculateMinimum();
+			// Cas de départ : arrive une seule fois
+			requestsByURLs.put(request.getURL(), request);
+			minTime = request.getElapsedTime();
+			minURL = request.getURL();
 		} else {
-			if(requestsByTimes.containsKey(request.getURL())) {
-				Request requestStored = requestsByTimes.get(request.getURL());
+			if(requestsByURLs.containsKey(request.getURL())) {
+				// Remplace le temps de la même requête déjà présente dans le tableau 
+				Request requestStored = requestsByURLs.get(request.getURL());
 				if(requestStored.getElapsedTime() < request.getElapsedTime()) {
-					requestsByTimes.put(request.getURL(), request);
-					calculateMinimum();
+					requestsByURLs.put(request.getURL(), request);
 				}
 			} else {
-				if(requestsByTimes.size() < size) {
-					requestsByTimes.put(request.getURL(), request);
-					calculateMinimum();
+				if(requestsByURLs.size() < size) {
+					// Insère la requête dans un espace libre du tableau 
+					requestsByURLs.put(request.getURL(), request);
+					if(minTime > request.getElapsedTime()) {
+						minTime = request.getElapsedTime();
+						minURL = request.getURL();
+					}
 				} else {
 					if(minTime < request.getElapsedTime()) {
-						requestsByTimes.remove(minURL);
-						requestsByTimes.put(request.getURL(), request);
+						// Dans le cas où le tableau n'a plus d'espace libre
+						// et que la requête a un temps supérieur à l'une des requêtes présentes dans le tableau
+						requestsByURLs.remove(minURL);
+						requestsByURLs.put(request.getURL(), request);
 						calculateMinimum();
 					}
 				}
@@ -76,10 +84,10 @@ public class LongestRequests {
 	/**
 	 * Calculate the minimum execution of stored requests.
 	 */
-	public void calculateMinimum() {
+	private void calculateMinimum() {
 		String minURL = null;
 		Long minTime = null;
-		for(Request request : requestsByTimes.values()) {
+		for(Request request : requestsByURLs.values()) {
 			if(minTime == null || minTime > request.getElapsedTime()) {
 				minTime = request.getElapsedTime();
 				minURL = request.getURL();
@@ -93,9 +101,9 @@ public class LongestRequests {
 	 * Returns requests by descending execution time.
 	 * @return requests
 	 */
-	public List<Request> getAllDescending() {
+	public synchronized List<Request> getAllDescending() {
 		List<Request> requests = new ArrayList<Request>();
-		for(Request request : requestsByTimes.values()) {
+		for(Request request : requestsByURLs.values()) {
 			if(request != null) {
 				requests.add(request);
 			}

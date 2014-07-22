@@ -41,6 +41,10 @@ public class Request implements Serializable {
 	private String servletPath;
 	/** URL Path */
 	private String pathInfo;
+	/** Counting all requests */
+	private long countAllRequest;
+	/** Counting all longest requests */
+	private long countLongTimeRequests;
 
 	/**
 	 * Constructor
@@ -48,21 +52,6 @@ public class Request implements Serializable {
 	public Request() {
 	}
 	
-	/**
-	 * Constructor
-	 * @param httpRequest HTTP request
-	 * @param startTime Start date as long value
-	 * @param elapsedTime Execution time as long value
-	 */
-	public Request(HttpServletRequest httpRequest, long startTime, long elapsedTime) {
-		this.startTime = startTime;
-		this.elapsedTime = elapsedTime;
-		this.requestURL = httpRequest.getRequestURL().toString();
-		this.queryString = httpRequest.getQueryString();
-		this.servletPath = httpRequest.getServletPath();
-		this.pathInfo = httpRequest.getPathInfo();
-	}
-
 	/**
 	 * Convert to String value.
 	 * @return string value
@@ -73,11 +62,33 @@ public class Request implements Serializable {
 		final String sStartTime = dateFormat.format( new Date(getStartTime()) ) ;
 		final StringBuilder sb = new StringBuilder();
 		sb.append(sStartTime );
-		sb.append(" - ");
-		sb.append(getElapsedTime());
+		sb.append(" - [ ");
+		sb.append(countLongTimeRequests);
+		sb.append(" / ");
+		sb.append(countAllRequest);
+		sb.append(" ] - ");
+		sb.append(elapsedTime);
 		sb.append(" ms - ");
-		sb.append(getRequestURL() );
-		String queryString = getQueryString() ;
+		sb.append(requestURL );
+		if ( queryString != null ) {
+			sb.append("?"+queryString );
+		}
+		return sb.toString();
+	}
+
+	/**
+	 * Convert to String value without counting information.
+	 * @return string value
+	 */
+	public String toStringWithoutCounting() {
+		final DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+		final String sStartTime = dateFormat.format( new Date(getStartTime()) ) ;
+		final StringBuilder sb = new StringBuilder();
+		sb.append(sStartTime );
+		sb.append(" - ");
+		sb.append(elapsedTime);
+		sb.append(" ms - ");
+		sb.append(requestURL );
 		if ( queryString != null ) {
 			sb.append("?"+queryString );
 		}
@@ -142,6 +153,22 @@ public class Request implements Serializable {
 
 	public void setPathInfo(String pathInfo) {
 		this.pathInfo = pathInfo;
+	}
+
+	public long getCountAllRequest() {
+		return countAllRequest;
+	}
+
+	public void setCountAllRequest(long countAllRequest) {
+		this.countAllRequest = countAllRequest;
+	}
+
+	public long getCountLongTimeRequests() {
+		return countLongTimeRequests;
+	}
+
+	public void setCountLongTimeRequests(long countLongTimeRequests) {
+		this.countLongTimeRequests = countLongTimeRequests;
 	}
 
 }
