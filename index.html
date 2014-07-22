@@ -31,21 +31,13 @@
     <!-- MAIN CONTENT -->
     <div id="main_content_wrap" class="outer">
       <section id="main_content" class="inner">
-        <h3>
-<a name="telosys-monitoring" class="anchor" href="#telosys-monitoring"><span class="octicon octicon-link"></span></a>Telosys monitoring</h3>
-
-<h1>
-<a name="telosys-monitoring-1" class="anchor" href="#telosys-monitoring-1"><span class="octicon octicon-link"></span></a>telosys-monitoring</h1>
-
-<p>Tools for Java web application monitoring.</p>
-
-<h1>
-<a name="how-to-use" class="anchor" href="#how-to-use"><span class="octicon octicon-link"></span></a>HOW TO USE</h1>
+        <h1>
+<a name="how-to-use" class="anchor" href="#how-to-use"><span class="octicon octicon-link"></span></a>How to use</h1>
 
 <ul>
-<li>Download the JAR : telosys-monitoring.jar</li>
-<li>Put it in the application classpath or in the Tomcat server classpath</li>
-<li>Add these lines in the web.xml of your application :</li>
+<li><p>Download the JAR : telosys-monitoring.jar</p></li>
+<li><p>Put it in the application classpath or in the server classpath</p></li>
+<li><p>Add these lines in the web.xml of your application :</p></li>
 </ul><div class="highlight highlight-xml"><pre>  <span class="nt">&lt;filter&gt;</span>
     <span class="nt">&lt;filter-name&gt;</span>Monitor<span class="nt">&lt;/filter-name&gt;</span>
     <span class="nt">&lt;filter-class&gt;</span>org.telosys.webtools.monitoring.RequestsMonitor<span class="nt">&lt;/filter-class&gt;</span>    
@@ -81,11 +73,23 @@
 </pre></div>
 
 <ul>
-<li>Do not forget to restart your application server</li>
-<li>Navigate in your web application</li>
-<li>After some times, go the monitoring report page by the base URL of your application ending by "/monitoring". For example, if the base URL of your application is <code>http://my.application/web</code>, the URL to acces to the report page will be <code>http://my.application/web/monitoring</code>.</li>
+<li><p>Do not forget to restart your application server</p></li>
+<li><p>Navigate in your web application</p></li>
 </ul><h3>
-<a name="support-or-contact" class="anchor" href="#support-or-contact"><span class="octicon octicon-link"></span></a>Support or Contact</h3>
+<a name="monitoring-report-page" class="anchor" href="#monitoring-report-page"><span class="octicon octicon-link"></span></a>Monitoring Report page</h3>
+
+<ul>
+<li>Go the monitoring report page. For that, add "/monitoring" at the end of the base URL of your application</li>
+</ul><p><em>Example :</em></p>
+
+<p>if the base URL of your application is : <a href="http://my.application/web">http://my.application/web</a></p>
+
+<p>then the URL of the report page is : <a href="http://my.application/web/monitoring">http://my.application/web/monitoring</a></p>
+
+<p>"/monitoring" can be redefined in the web.xml by the init-param "reporting" of the "telosys-monitoring" filter.</p>
+
+<h2>
+<a name="contact" class="anchor" href="#contact"><span class="octicon octicon-link"></span></a>Contact</h2>
 
 <p>Contact us at : <a href="telosysteam@gmail.com">telosysteam@gmail.com</a></p>
       </section>
