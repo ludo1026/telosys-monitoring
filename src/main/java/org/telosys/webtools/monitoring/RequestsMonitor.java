@@ -47,10 +47,12 @@ public class RequestsMonitor implements Filter {
 
 	protected final static int DEFAULT_DURATION_THRESHOLD  = 1000 ; // 1 second 
 	protected final static int DEFAULT_LOG_SIZE            =  100 ;
+	protected final static int DEFAULT_TOP_TEN_SIZE        =  10 ;
 	
 	protected int     durationThreshold     = DEFAULT_DURATION_THRESHOLD ; 
 	protected String  reportingReqPath      = "/monitor" ; 
 	protected int     logSize               = DEFAULT_LOG_SIZE ;
+	protected int     topTenSize            = DEFAULT_TOP_TEN_SIZE ;
 	protected boolean traceFlag             = false ;
 	
 	protected String initializationDate     = "???" ; 
@@ -58,7 +60,7 @@ public class RequestsMonitor implements Filter {
 	protected long   countLongTimeRequests  = 0 ; 
 	
 	protected CircularStack logLines = new CircularStack(DEFAULT_LOG_SIZE);
-	protected TopRequests topRequests = new TopRequests(20);
+	protected TopRequests topRequests = new TopRequests(DEFAULT_TOP_TEN_SIZE);
 	
 	protected String ipAddress;
 	protected String hostname;
@@ -92,6 +94,10 @@ public class RequestsMonitor implements Filter {
 		//--- Parameter : memory log size 
 		logSize = parseInt( filterConfig.getInitParameter("logsize"), DEFAULT_LOG_SIZE );
 		logLines = new CircularStack(logSize);
+
+		//--- Parameter : memory log size 
+		topTenSize = parseInt( filterConfig.getInitParameter("toptensize"), DEFAULT_TOP_TEN_SIZE );
+		topRequests = new TopRequests(topTenSize);
 
 		//--- Parameter : status report URI
 		String reportingParam = filterConfig.getInitParameter("reporting");
@@ -226,6 +232,7 @@ public class RequestsMonitor implements Filter {
 			
 			out.println("Duration threshold : " + durationThreshold );
 			out.println("Log in memory size : " + logSize + " lines" );	
+			out.println("Top longuest requests in memory size : " + topTenSize + " lines" );	
 			out.println(" ");
 			
 			out.println("Initialization date/time : " + initializationDate );
@@ -241,7 +248,7 @@ public class RequestsMonitor implements Filter {
 			
 			List<Request> requests = topRequests.getAllDescending(); 
 			out.println(" ");
-			out.println("Top " + topRequests.getSize() + " of last long time requests : " );
+			out.println("Top " + requests.size() + " of last long time requests : " );
 			for ( Request request : requests ) {
 				out.println(request.toString());
 			}

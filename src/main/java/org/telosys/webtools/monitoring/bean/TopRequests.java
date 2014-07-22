@@ -9,6 +9,13 @@ import java.util.TreeSet;
 public class TopRequests {
 	
 	private final Request[] requests;
+	private ValuePosition minimum;
+	private boolean completed = false;
+	
+	private static class ValuePosition {
+		public Long value = null;
+		public Integer position = null;
+	}
 	
 	public TopRequests(int size) {
 		if(size <= 0) {
@@ -21,39 +28,42 @@ public class TopRequests {
 		return requests.length;
 	}
 	
-	public void add(Request request) {
-		if(mustBeInsert(request)) {
-			int posMinimum = getMinimumPosition();
-			requests[posMinimum] = request;
+	public synchronized void add(Request request) {
+		if(minimum == null) {
+			requests[0] = request;
+			minimum = getMinimum();
+		} else {
+			if(minimum.position >= 0 && minimum.position < requests.length) {
+				if(minimum.value == null) {
+					requests[minimum.position] = request;
+					minimum = getMinimum();
+				}
+				else if(minimum.value <= request.getElapsedTime()) {
+					requests[minimum.position] = request;
+					minimum = getMinimum();
+				}
+			}
 		}
 	}
 	
-	protected int getMinimumPosition() {
-		int posMinimum = -1;
-		long minimum = -1;
+	protected ValuePosition getMinimum() {
+		ValuePosition minimum = new ValuePosition();
 		for(int pos=0; pos<requests.length; pos++) {
 			if(requests[pos] == null) {
-				posMinimum = pos;
+				minimum.position = pos;
+				minimum.value = null;
+				completed = false;
 				break;
 			}
-			if(requests[pos].getElapsedTime() < minimum || minimum == -1) {
-				posMinimum = pos;
-				minimum = requests[pos].getElapsedTime();
+			if(minimum.value == null || requests[pos].getElapsedTime() < minimum.value) {
+				minimum.position = pos;
+				minimum.value = requests[pos].getElapsedTime();
 			}
 		}
-		return posMinimum;
-	}
-	
-	protected boolean mustBeInsert(Request request) {
-		for(int pos=0; pos<requests.length; pos++) {
-			if(requests[pos] == null) {
-				return true;
-			}
-			if(request.getElapsedTime() > requests[pos].getElapsedTime()) {
-				return true;
-			}
+		if(minimum.position == null) {
+			completed = true;
 		}
-		return false;
+		return minimum;
 	}
 
 	public List<Request> getAllAscending() {

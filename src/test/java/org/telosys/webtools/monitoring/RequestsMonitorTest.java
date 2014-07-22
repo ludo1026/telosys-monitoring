@@ -1,6 +1,9 @@
 package org.telosys.webtools.monitoring;
 
 import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertFalse;
+import static junit.framework.Assert.assertTrue;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -32,8 +35,8 @@ public class RequestsMonitorTest {
 		RequestsMonitor requestsMonitor = spy(new RequestsMonitor());
 
 		InetAddress adrLocale = mock(InetAddress.class);
-		when(requestsMonitor.getLocalHost()).thenReturn(adrLocale);
-		when(adrLocale.getAddress()).thenReturn("10.11.12.13".getBytes());
+		doReturn(adrLocale).when(requestsMonitor).getLocalHost();
+		when(adrLocale.getHostAddress()).thenReturn("10.11.12.13");
 		when(adrLocale.getHostName()).thenReturn("hostname");
 		
 		FilterConfig filterConfig = mock(FilterConfig.class);
@@ -42,12 +45,13 @@ public class RequestsMonitorTest {
 		requestsMonitor.init(filterConfig);
 		
 		// Then
-		requestsMonitor.durationThreshold = RequestsMonitor.DEFAULT_DURATION_THRESHOLD;
-		requestsMonitor.logSize = RequestsMonitor.DEFAULT_LOG_SIZE;
-		requestsMonitor.reportingReqPath = "/monitor";
-		requestsMonitor.traceFlag = false;
-		requestsMonitor.ipAddress = "10.11.12.13";
-		requestsMonitor.hostname = "hostname";
+		assertEquals(RequestsMonitor.DEFAULT_DURATION_THRESHOLD, requestsMonitor.durationThreshold);
+		assertEquals(RequestsMonitor.DEFAULT_LOG_SIZE, requestsMonitor.logSize);
+		assertEquals(RequestsMonitor.DEFAULT_TOP_TEN_SIZE, requestsMonitor.topTenSize);
+		assertEquals("/monitor", requestsMonitor.reportingReqPath);
+		assertFalse(requestsMonitor.traceFlag);
+		assertEquals("10.11.12.13", requestsMonitor.ipAddress);
+		assertEquals("hostname", requestsMonitor.hostname);
 	}
 	
 	@Test
@@ -56,26 +60,28 @@ public class RequestsMonitorTest {
 		RequestsMonitor requestsMonitor = spy(new RequestsMonitor());
 
 		InetAddress adrLocale = mock(InetAddress.class);
-		when(requestsMonitor.getLocalHost()).thenReturn(adrLocale);
-		when(adrLocale.getAddress()).thenReturn("10.11.12.13".getBytes());
+		doReturn(adrLocale).when(requestsMonitor).getLocalHost();
+		when(adrLocale.getHostAddress()).thenReturn("10.11.12.13");
 		when(adrLocale.getHostName()).thenReturn("hostname");
 		
 		FilterConfig filterConfig = mock(FilterConfig.class);
 		when(filterConfig.getInitParameter("duration")).thenReturn("200");
 		when(filterConfig.getInitParameter("logsize")).thenReturn("300");
-		when(filterConfig.getInitParameter("reporting")).thenReturn("monitoring2");
+		when(filterConfig.getInitParameter("toptensize")).thenReturn("400");
+		when(filterConfig.getInitParameter("reporting")).thenReturn("/monitoring2");
 		when(filterConfig.getInitParameter("trace")).thenReturn("true");
 		
 		// When
 		requestsMonitor.init(filterConfig);
 		
 		// Then
-		requestsMonitor.durationThreshold = 200;
-		requestsMonitor.logSize = 300;
-		requestsMonitor.reportingReqPath = "/monitor2";
-		requestsMonitor.traceFlag = true;
-		requestsMonitor.ipAddress = "10.11.12.13";
-		requestsMonitor.hostname = "hostname";
+		assertEquals(200, requestsMonitor.durationThreshold);
+		assertEquals(300, requestsMonitor.logSize);
+		assertEquals(400, requestsMonitor.topTenSize);
+		assertEquals("/monitoring2", requestsMonitor.reportingReqPath);
+		assertTrue(requestsMonitor.traceFlag);
+		assertEquals("10.11.12.13", requestsMonitor.ipAddress);
+		assertEquals("hostname", requestsMonitor.hostname);
 	}
 	
 	@Test
@@ -116,8 +122,8 @@ public class RequestsMonitorTest {
 		verify(chain).doFilter(httpRequest2, response);
 		
 		List<Request> lines = requestsMonitor.logLines.getAllAscendant();
-		assertEquals("1970/01/01 01:00:00 [500 ms] : http://request1.url?query1", lines.get(0).toString());
-		assertEquals("1970/01/01 01:00:01 [500 ms] : http://request2.url?query2", lines.get(1).toString());
+		assertEquals("1970/01/01 01:00:00 - 500 ms - http://request1.url?query1", lines.get(0).toString());
+		assertEquals("1970/01/01 01:00:01 - 500 ms - http://request2.url?query2", lines.get(1).toString());
 	}
 	
 	@Test
@@ -162,12 +168,14 @@ public class RequestsMonitorTest {
 		verify(out).println("Hostname : " + requestsMonitor.hostname );
 		verify(out).println("Duration threshold : " + requestsMonitor.durationThreshold );
 		verify(out).println("Log in memory size : " + requestsMonitor.logSize + " lines");
+		verify(out).println("Top longuest requests in memory size : " + requestsMonitor.topTenSize + " lines");
 		verify(out).println("Initialization date/time : " + requestsMonitor.initializationDate );
 		verify(out).println("Total requests count     : " + requestsMonitor.countAllRequest);
 		verify(out).println("Long time requests count : " + requestsMonitor.countLongTimeRequests );
 		verify(out).println("" + lines.size() + " last long time requests : " );
-		verify(out).println("1970/01/01 01:00:11 [12 ms] : requestURL1?queryString1");
-		verify(out).println("1970/01/01 01:00:21 [22 ms] : requestURL2?queryString2");
+		verify(out).println("1970/01/01 01:00:11 - 12 ms - requestURL1?queryString1");
+		verify(out).println("1970/01/01 01:00:21 - 22 ms - requestURL2?queryString2");
+		verify(out).println("Top " + requestsMonitor.topRequests.getAllDescending().size() + " of last long time requests : " );
 	}
 	
 }
