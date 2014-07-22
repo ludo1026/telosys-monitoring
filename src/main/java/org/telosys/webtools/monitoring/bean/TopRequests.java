@@ -57,23 +57,25 @@ public class TopRequests {
 	}
 
 	public List<Request> getAllAscending() {
-		Set<Request> allSorted = new TreeSet<Request>(new RequestComparator());
+		List<Request> all = new ArrayList<Request>();
 		for(Request request : requests) {
 			if(request != null) {
-				allSorted.add(request);
+				all.add(request);
 			}
 		}
-		return new ArrayList<Request>(allSorted);
+		all.sort(new RequestComparator());
+		return all;
 	}
 
 	public List<Request> getAllDescending() {
-		Set<Request> allSorted = new TreeSet<Request>(new RequestComparator(false));
+		List<Request> all = new ArrayList<Request>();
 		for(Request request : requests) {
 			if(request != null) {
-				allSorted.add(request);
+				all.add(request);
 			}
 		}
-		return new ArrayList<Request>(allSorted);
+		all.sort(new RequestComparator(false));
+		return all;
 	}
 	
 }

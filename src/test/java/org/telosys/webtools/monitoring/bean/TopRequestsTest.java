@@ -47,12 +47,12 @@ public class TopRequestsTest {
 		assertEquals(r2, requests.get(2));
 		
 		Request r5 = new Request();
-		r5.setElapsedTime(18);
+		r5.setElapsedTime(16);
 		topRequests.add(r5);
 		requests = topRequests.getAllDescending();
 		assertEquals(3, requests.size());
-		assertEquals(r5, requests.get(0));
-		assertEquals(r4, requests.get(1));
+		assertEquals(r4, requests.get(0));
+		assertEquals(r5, requests.get(1));
 		assertEquals(r3, requests.get(2));
 	}
 
@@ -95,7 +95,7 @@ public class TopRequestsTest {
 		assertEquals(r4, requests.get(2));
 		
 		Request r5 = new Request();
-		r5.setElapsedTime(18);
+		r5.setElapsedTime(16);
 		topRequests.add(r5);
 		requests = topRequests.getAllAscending();
 		assertEquals(3, requests.size());

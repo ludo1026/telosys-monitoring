@@ -240,6 +240,7 @@ public class RequestsMonitor implements Filter {
 			}
 			
 			List<Request> requests = topRequests.getAllDescending(); 
+			out.println(" ");
 			out.println("Top " + topRequests.getSize() + " of last long time requests : " );
 			for ( Request request : requests ) {
 				out.println(request.toString());

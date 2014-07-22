@@ -36,9 +36,9 @@ public class Request implements Serializable {
 		final String sStartTime = dateFormat.format( new Date(getStartTime()) ) ;
 		final StringBuilder sb = new StringBuilder();
 		sb.append(sStartTime );
-		sb.append(" [");
+		sb.append(" - ");
 		sb.append(getElapsedTime());
-		sb.append(" ms] : ");
+		sb.append(" ms - ");
 		sb.append(getRequestURL() );
 		String queryString = getQueryString() ;
 		if ( queryString != null ) {
