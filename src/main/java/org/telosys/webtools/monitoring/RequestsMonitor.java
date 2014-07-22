@@ -22,9 +22,7 @@ import java.net.UnknownHostException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -36,6 +34,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.telosys.webtools.monitoring.bean.CircularStack;
+import org.telosys.webtools.monitoring.bean.LonguestRequests;
 import org.telosys.webtools.monitoring.bean.Request;
 import org.telosys.webtools.monitoring.bean.TopRequests;
 
@@ -48,11 +47,13 @@ public class RequestsMonitor implements Filter {
 	protected final static int DEFAULT_DURATION_THRESHOLD  = 1000 ; // 1 second 
 	protected final static int DEFAULT_LOG_SIZE            =  100 ;
 	protected final static int DEFAULT_TOP_TEN_SIZE        =  10 ;
+	protected final static int DEFAULT_LONGUEST_SIZE        =  10 ;
 	
 	protected int     durationThreshold     = DEFAULT_DURATION_THRESHOLD ; 
 	protected String  reportingReqPath      = "/monitor" ; 
 	protected int     logSize               = DEFAULT_LOG_SIZE ;
 	protected int     topTenSize            = DEFAULT_TOP_TEN_SIZE ;
+	protected int     longuestSize          = DEFAULT_LONGUEST_SIZE ;
 	protected boolean traceFlag             = false ;
 	
 	protected String initializationDate     = "???" ; 
@@ -61,6 +62,7 @@ public class RequestsMonitor implements Filter {
 	
 	protected CircularStack logLines = new CircularStack(DEFAULT_LOG_SIZE);
 	protected TopRequests topRequests = new TopRequests(DEFAULT_TOP_TEN_SIZE);
+	protected LonguestRequests longuestRequests = new LonguestRequests(DEFAULT_LONGUEST_SIZE);
 	
 	protected String ipAddress;
 	protected String hostname;
@@ -95,9 +97,13 @@ public class RequestsMonitor implements Filter {
 		logSize = parseInt( filterConfig.getInitParameter("logsize"), DEFAULT_LOG_SIZE );
 		logLines = new CircularStack(logSize);
 
-		//--- Parameter : memory log size 
+		//--- Parameter : memory top ten size 
 		topTenSize = parseInt( filterConfig.getInitParameter("toptensize"), DEFAULT_TOP_TEN_SIZE );
 		topRequests = new TopRequests(topTenSize);
+
+		//--- Parameter : memory longuest requests size 
+		longuestSize = parseInt( filterConfig.getInitParameter("longuestsize"), DEFAULT_LONGUEST_SIZE );
+		longuestRequests = new LonguestRequests(longuestSize);
 
 		//--- Parameter : status report URI
 		String reportingParam = filterConfig.getInitParameter("reporting");
@@ -204,6 +210,7 @@ public class RequestsMonitor implements Filter {
 		
 		this.logLines.push(request);
 		this.topRequests.add(request);
+		this.longuestRequests.add(request);
 		
 		trace(request);
 	}
@@ -254,6 +261,14 @@ public class RequestsMonitor implements Filter {
 			for ( Request request : requests ) {
 				out.println(request.toString());
 			}
+			
+			requests = longuestRequests.getAllDescendants(); 
+			out.println(" ");
+			out.println(requests.size() + " longuest requests : " );
+			for ( Request request : requests ) {
+				out.println(request.toString());
+			}
+			
 			out.close();
 		} catch (IOException e) {
 			throw new RuntimeException("RequestMonitor error : cannot get writer");
