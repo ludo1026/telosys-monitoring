@@ -47,7 +47,7 @@ public class RequestsMonitor implements Filter {
 	protected final static int DEFAULT_DURATION_THRESHOLD  = 1000 ; // 1 second 
 	protected final static int DEFAULT_LOG_SIZE            =  100 ;
 	protected final static int DEFAULT_TOP_TEN_SIZE        =  10 ;
-	protected final static int DEFAULT_LONGUEST_SIZE        =  10 ;
+	protected final static int DEFAULT_LONGUEST_SIZE       =  10 ;
 	
 	protected int     durationThreshold     = DEFAULT_DURATION_THRESHOLD ; 
 	protected String  reportingReqPath      = "/monitor" ; 
@@ -73,18 +73,6 @@ public class RequestsMonitor implements Filter {
     public RequestsMonitor() {
     }
 
-    protected final void trace(Request request) {
-    	if ( traceFlag ) {
-    		trace( "Logging line : " + request);
-    	}
-    }
-
-    protected final void trace(String msg) {
-    	if ( traceFlag ) {
-    		System.out.println("[TRACE] : " + msg );
-    	}    	
-    }
-    
 	/**
 	 * @see Filter#init(FilterConfig)
 	 */
@@ -275,6 +263,18 @@ public class RequestsMonitor implements Filter {
 		}
 	}
 
+    protected final void trace(Request request) {
+    	if ( traceFlag ) {
+    		trace( "Logging line : " + request);
+    	}
+    }
+
+    protected final void trace(String msg) {
+    	if ( traceFlag ) {
+    		System.out.println("[TRACE] : " + msg );
+    	}    	
+    }
+    
 	protected final String format ( Date date ) {
 		final DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 		return dateFormat.format( date ) ;
