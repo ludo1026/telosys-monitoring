@@ -43,27 +43,45 @@ import org.telosys.webtools.monitoring.bean.TopRequests;
  */
 public class RequestsMonitor implements Filter {
 
-	protected final static int DEFAULT_DURATION_THRESHOLD  = 1000 ; // 1 second 
+	/** Execution time threshold */
+	protected final static int DEFAULT_DURATION_THRESHOLD  = 1000 ; // 1 second
+	/** Number of last stored requests */
 	protected final static int DEFAULT_LOG_SIZE            =  100 ;
+	/** Number of top longest requests */
 	protected final static int DEFAULT_TOP_TEN_SIZE        =  10 ;
-	protected final static int DEFAULT_LONGEST_SIZE       =  10 ;
+	/** Number of longest requests */
+	protected final static int DEFAULT_LONGEST_SIZE        =  10 ;
 	
-	protected int     durationThreshold     = DEFAULT_DURATION_THRESHOLD ; 
-	protected String  reportingReqPath      = "/monitor" ; 
+	/** Execution time threshold */
+	protected int     durationThreshold     = DEFAULT_DURATION_THRESHOLD ;
+	/** URL path to the monitor reporting */
+	protected String  reportingReqPath      = "/monitor" ;
+	/** Number of last stored requests */
 	protected int     logSize               = DEFAULT_LOG_SIZE ;
+	/** Number of top longest requests */
 	protected int     topTenSize            = DEFAULT_TOP_TEN_SIZE ;
+	/** Number of longest requests */
 	protected int     longestSize          = DEFAULT_LONGEST_SIZE ;
+	/** Indicates if information are displayed in the output console of the server */
 	protected boolean traceFlag             = false ;
 	
-	protected String initializationDate     = "???" ; 
+	/** Initialization date */
+	protected String initializationDate     = "???" ;
+	/** Count all requests */
 	protected long   countAllRequest        = 0 ; 
+	/** Count longest requests */
 	protected long   countLongTimeRequests  = 0 ; 
 	
+	/** Last stored requests */
 	protected CircularStack logLines = new CircularStack(DEFAULT_LOG_SIZE);
+	/** Top longest requests */
 	protected TopRequests topRequests = new TopRequests(DEFAULT_TOP_TEN_SIZE);
+	/** Longest requests */
 	protected LongestRequests longestRequests = new LongestRequests(DEFAULT_LONGEST_SIZE);
 	
+	/** IP address */
 	protected String ipAddress;
+	/** Host name */
 	protected String hostname;
 	
     /**
@@ -138,6 +156,12 @@ public class RequestsMonitor implements Filter {
 		return System.currentTimeMillis();
 	}
 
+	/**
+	 * Convert String value to Integer.
+	 * @param s String value
+	 * @param defaultValue Default Integer value if the conversion fails
+	 * @return Integer value
+	 */
 	protected int parseInt(String s, int defaultValue) {
 		int v = defaultValue ;
 		if ( s != null ) {
@@ -186,6 +210,12 @@ public class RequestsMonitor implements Filter {
 		}
 	}
 
+	/**
+	 * Create Request object and stores this request.
+	 * @param httpRequest HTTP request
+	 * @param startTime Start date
+	 * @param elapsedTime Execution time
+	 */
 	protected final void logRequest(HttpServletRequest httpRequest, long startTime, long elapsedTime ) {
 		Request request = new Request();
 		request.setElapsedTime(elapsedTime);
@@ -204,8 +234,7 @@ public class RequestsMonitor implements Filter {
 	
 	/**
 	 * Reports the current status in plain text
-	 *   
-	 * @param response
+	 * @param response HTTP response
 	 */
 	protected final void reporting (HttpServletResponse response) {
 		
@@ -262,18 +291,31 @@ public class RequestsMonitor implements Filter {
 		}
 	}
 
+	/**
+	 * Log the request in the output console.
+	 * @param request Request.
+	 */
     protected final void trace(Request request) {
     	if ( traceFlag ) {
     		trace( "Logging line : " + request);
     	}
     }
 
+    /**
+     * Log the message in the output console.
+     * @param msg Message
+     */
     protected final void trace(String msg) {
     	if ( traceFlag ) {
     		System.out.println("[TRACE] : " + msg );
     	}    	
     }
     
+    /**
+     * Convert Date to String value.
+     * @param date Date
+     * @return String value
+     */
 	protected final String format ( Date date ) {
 		final DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 		return dateFormat.format( date ) ;
