@@ -60,12 +60,9 @@ Actions
 You can change monitoring values with parameters in the "/monitoring" URL :
 * ```action=clear``` : clear all logs
 * ```duration=``` : request duration threshold
-* ```logsize=``` : number of requests in the log
-* ```topsize=``` : number of the top longuest requests
-* ```longuestsize=``` : number of the longuest requests
-
-
-
+* ```log_size=``` : number of requests in the log
+* ```by_time_size=``` : number of the longuest requests by time
+* ```by_url_size=``` : number of the longuest requests by URL
 
 Contact
 ---
