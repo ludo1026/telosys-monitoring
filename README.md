@@ -1,14 +1,12 @@
-telosys-monitoring
-==================
-
-Tools for Java web application monitoring.
-
-HOW TO USE
+How to use
 ==========
 
 * Download the JAR : telosys-monitoring.jar
-* Put it in the application classpath or in the Tomcat server classpath
+
+* Put it in the application classpath or in the server classpath
+
 * Add these lines in the web.xml of your application :
+
 ```xml
   <filter>
     <filter-name>Monitor</filter-name>
@@ -43,6 +41,23 @@ HOW TO USE
   	<url-pattern>/*</url-pattern>
   </filter-mapping>
 ```
+
 * Do not forget to restart your application server
+
 * Navigate in your web application
-* After some times, go the monitoring report page by the base URL of your application ending by "/monitoring". For example, if the base URL of your application is ```http://my.application/web```, the URL to acces to the report page will be ```http://my.application/web/monitoring```.
+
+### Monitoring Report page
+
+* Go the monitoring report page. For that, add "/monitoring" at the end of the base URL of your application
+
+_Example :_
+
+if the base URL of your application is : http://my.application/web
+
+then the URL of the report page is : http://my.application/web/monitoring
+
+"/monitoring" can be redefined in the web.xml by the init-param "reporting" of the "telosys-monitoring" filter.
+Contact
+---
+
+Contact us at : [telosysteam@gmail.com](telosysteam@gmail.com)
