@@ -40,7 +40,6 @@ import org.telosys.webtools.monitoring.bean.TopRequests;
 
 /**
  * Servlet Filter for Http Requests Monitor
- * 
  */
 public class RequestsMonitor implements Filter {
 
@@ -196,7 +195,7 @@ public class RequestsMonitor implements Filter {
 		request.setRequestURL(httpRequest.getRequestURL().toString());
 		request.setServletPath(httpRequest.getServletPath());
 		
-		this.logLines.push(request);
+		this.logLines.add(request);
 		this.topRequests.add(request);
 		this.longestRequests.add(request);
 		

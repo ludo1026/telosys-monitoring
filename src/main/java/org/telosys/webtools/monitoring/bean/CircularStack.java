@@ -1,25 +1,59 @@
+/**
+ *  Copyright (C) 2008-2014  Telosys project org. ( http://www.telosys.org/ )
+ *
+ *  Licensed under the GNU LESSER GENERAL PUBLIC LICENSE, Version 3.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *          http://www.gnu.org/licenses/lgpl.html
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
 package org.telosys.webtools.monitoring.bean;
 
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Circular stack contains the last long requests : old requests are replaced by the new requests.
+ */
 public class CircularStack {
 	
+	/** Number of stored requests. */
 	protected final int size;
+	/** Array of stored requests */
 	protected final Request[] arrays;
+	/** Position of the next request in the array */ 
 	protected int nextIndex = 0;
+	/** Indicates if the array is completed */
 	protected boolean completed = false;
 	
+	/**
+	 * Constructor.
+	 * @param size Number of stored requests
+	 */
 	public CircularStack(int size) {
 		this.size = size;
 		this.arrays = new Request[size];
 	}
 	
-	public void push(Request value) {
+	/**
+	 * Add new request in the stack.
+	 * @param request Request.
+	 */
+	public void add(Request request) {
 		int index = getNextIndice();
-		this.arrays[index] = value;
+		this.arrays[index] = request;
 	}
 	
+	/**
+	 * Next position in the requests array.
+	 * @return position
+	 */
 	public synchronized int getNextIndice() {
 		int index = this.nextIndex;
 		this.nextIndex++;
@@ -30,6 +64,10 @@ public class CircularStack {
 		return index;
 	}
 	
+	/**
+	 * Returns all requests by ascending.
+	 * @return requests
+	 */
 	public synchronized List<Request> getAllAscending() {
 		List<Request> results = new ArrayList<Request>();
 		int index = this.nextIndex;
@@ -45,6 +83,10 @@ public class CircularStack {
 		return results;
 	}
 	
+	/**
+	 * Returns all requests by descending.
+	 * @return requests
+	 */
 	public synchronized List<Request> getAllDescending() {
 		List<Request> results = new ArrayList<Request>();
 		int index = this.nextIndex;
