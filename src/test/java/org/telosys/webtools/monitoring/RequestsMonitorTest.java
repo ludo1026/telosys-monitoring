@@ -17,6 +17,8 @@ package org.telosys.webtools.monitoring;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -29,7 +31,9 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
@@ -104,7 +108,132 @@ public class RequestsMonitorTest {
 		assertEquals("10.11.12.13", requestsMonitor.ipAddress);
 		assertEquals("hostname", requestsMonitor.hostname);
 	}
+
+	@Test
+	public void testGetParameters() {
+		// Given
+		RequestsMonitor requestsMonitor = new RequestsMonitor();
+		
+		HttpServletRequest request = mock(HttpServletRequest.class);
+		when(request.getQueryString()).thenReturn(
+				RequestsMonitor.ATTRIBUTE_NAME_DURATION_THRESHOLD + "=201&"
+				+ RequestsMonitor.ATTRIBUTE_NAME_LOG_SIZE + "=301&"
+				+ RequestsMonitor.ATTRIBUTE_NAME_TOP_TEN_SIZE + "=401&"
+				+ RequestsMonitor.ATTRIBUTE_NAME_LONGEST_SIZE + "=501&"
+				+ RequestsMonitor.ATTRIBUTE_NAME_TRACE_FLAG + "=true&"
+				+ RequestsMonitor.ATTRIBUTE_NAME_CLEAN + "=true");
+		
+		// When
+		Map<String,String> params = requestsMonitor.getParameters(request);
+		
+		// Then
+		assertEquals("201", params.get(RequestsMonitor.ATTRIBUTE_NAME_DURATION_THRESHOLD));
+		assertEquals("301", params.get(RequestsMonitor.ATTRIBUTE_NAME_LOG_SIZE));
+		assertEquals("401", params.get(RequestsMonitor.ATTRIBUTE_NAME_TOP_TEN_SIZE));
+		assertEquals("501", params.get(RequestsMonitor.ATTRIBUTE_NAME_LONGEST_SIZE));
+		assertEquals("true", params.get(RequestsMonitor.ATTRIBUTE_NAME_TRACE_FLAG));
+		assertEquals("true", params.get(RequestsMonitor.ATTRIBUTE_NAME_CLEAN));
+	}
+
+	@Test
+	public void testGetParameters2() {
+		// Given
+		RequestsMonitor requestsMonitor = new RequestsMonitor();
+		
+		HttpServletRequest request = mock(HttpServletRequest.class);
+		when(request.getQueryString()).thenReturn(
+				RequestsMonitor.ATTRIBUTE_NAME_DURATION_THRESHOLD + "=&"
+				+ RequestsMonitor.ATTRIBUTE_NAME_LOG_SIZE + "=1&"
+				+ RequestsMonitor.ATTRIBUTE_NAME_TOP_TEN_SIZE + "&"
+				+ RequestsMonitor.ATTRIBUTE_NAME_LONGEST_SIZE + "&"
+				+ RequestsMonitor.ATTRIBUTE_NAME_TRACE_FLAG + "=" + "&"
+				+ RequestsMonitor.ATTRIBUTE_NAME_CLEAN + "");
+		
+		// When
+		Map<String,String> params = requestsMonitor.getParameters(request);
+		
+		// Then
+		assertNull(params.get(RequestsMonitor.ATTRIBUTE_NAME_DURATION_THRESHOLD));
+		assertEquals("1", params.get(RequestsMonitor.ATTRIBUTE_NAME_LOG_SIZE));
+		assertNull(params.get(RequestsMonitor.ATTRIBUTE_NAME_TOP_TEN_SIZE));
+		assertNull(params.get(RequestsMonitor.ATTRIBUTE_NAME_LONGEST_SIZE));
+		assertNull(params.get(RequestsMonitor.ATTRIBUTE_NAME_TRACE_FLAG));
+		assertNull(params.get(RequestsMonitor.ATTRIBUTE_NAME_CLEAN));
+	}
 	
+	@Test
+	public void testAction1() {
+		// Given
+		RequestsMonitor requestsMonitor = new RequestsMonitor();
+		
+		CircularStack logLines = requestsMonitor.logLines = mock(CircularStack.class);
+		TopRequests topRequests = requestsMonitor.topRequests = mock(TopRequests.class);
+		LongestRequests longestRequests = requestsMonitor.longestRequests = mock(LongestRequests.class);
+		
+		requestsMonitor.durationThreshold = 200;
+		requestsMonitor.logSize = 300;
+		requestsMonitor.topTenSize = 400;
+		requestsMonitor.longestSize = 500;
+		requestsMonitor.traceFlag = true;
+		
+		Map<String,String> params = new HashMap<String,String>();
+		params.put(RequestsMonitor.ATTRIBUTE_NAME_DURATION_THRESHOLD, "201");
+		params.put(RequestsMonitor.ATTRIBUTE_NAME_LOG_SIZE, "301");
+		params.put(RequestsMonitor.ATTRIBUTE_NAME_TOP_TEN_SIZE, "401");
+		params.put(RequestsMonitor.ATTRIBUTE_NAME_LONGEST_SIZE, "501");
+		params.put(RequestsMonitor.ATTRIBUTE_NAME_TRACE_FLAG, "true");
+		
+		// When
+		requestsMonitor.action(params);
+		
+		// Then
+		assertEquals(201, requestsMonitor.durationThreshold);
+		assertEquals(301, requestsMonitor.logSize);
+		assertNotEquals(logLines, requestsMonitor.logLines);
+		assertEquals(401, requestsMonitor.topTenSize);
+		assertNotEquals(topRequests, requestsMonitor.topRequests);
+		assertEquals(501, requestsMonitor.longestSize);
+		assertNotEquals(longestRequests, requestsMonitor.longestRequests);
+		assertTrue(requestsMonitor.traceFlag);
+
+	}
+
+	@Test
+	public void testAction2() {
+		// Given
+		RequestsMonitor requestsMonitor = new RequestsMonitor();
+		
+		CircularStack logLines = requestsMonitor.logLines = mock(CircularStack.class);
+		TopRequests topRequests = requestsMonitor.topRequests = mock(TopRequests.class);
+		LongestRequests longestRequests = requestsMonitor.longestRequests = mock(LongestRequests.class);
+		
+		requestsMonitor.durationThreshold = 200;
+		requestsMonitor.logSize = 300;
+		requestsMonitor.topTenSize = 400;
+		requestsMonitor.longestSize = 500;
+		requestsMonitor.traceFlag = true;
+		
+		Map<String,String> params = new HashMap<String,String>();
+		params.put(RequestsMonitor.ATTRIBUTE_NAME_DURATION_THRESHOLD, "200");
+		params.put(RequestsMonitor.ATTRIBUTE_NAME_LOG_SIZE, "300");
+		params.put(RequestsMonitor.ATTRIBUTE_NAME_TOP_TEN_SIZE, "400");
+		params.put(RequestsMonitor.ATTRIBUTE_NAME_LONGEST_SIZE, "500");
+		params.put(RequestsMonitor.ATTRIBUTE_NAME_TRACE_FLAG, "false");
+		
+		// When
+		requestsMonitor.action(params);
+		
+		// Then
+		assertEquals(200, requestsMonitor.durationThreshold);
+		assertEquals(300, requestsMonitor.logSize);
+		assertEquals(logLines, requestsMonitor.logLines);
+		assertEquals(400, requestsMonitor.topTenSize);
+		assertEquals(topRequests, requestsMonitor.topRequests);
+		assertEquals(500, requestsMonitor.longestSize);
+		assertEquals(longestRequests, requestsMonitor.longestRequests);
+		assertFalse(requestsMonitor.traceFlag);
+	}
+
 	@Test
 	public void testDoFilter() throws IOException, ServletException {
 		// Given

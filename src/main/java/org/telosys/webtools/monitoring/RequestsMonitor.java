@@ -22,7 +22,9 @@ import java.net.UnknownHostException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -43,6 +45,19 @@ import org.telosys.webtools.monitoring.bean.TopRequests;
  */
 public class RequestsMonitor implements Filter {
 
+	/** Clean all logs */
+	protected final static String ATTRIBUTE_NAME_CLEAN = "clean";
+	/** Execution time threshold */
+	protected final static String ATTRIBUTE_NAME_DURATION_THRESHOLD = "duration";
+	/** Number of last stored requests */
+	protected final static String ATTRIBUTE_NAME_LOG_SIZE           = "sizelog" ;
+	/** Number of top longest requests */
+	protected final static String ATTRIBUTE_NAME_TOP_TEN_SIZE       = "sizetop" ;
+	/** Number of longest requests */
+	protected final static String ATTRIBUTE_NAME_LONGEST_SIZE       = "sizelongest" ;
+	/** Indicates if information are displayed in the output console of the server */
+	protected final static String ATTRIBUTE_NAME_TRACE_FLAG         = "trace" ;
+	
 	/** Execution time threshold */
 	protected final static int DEFAULT_DURATION_THRESHOLD  = 1000 ; // 1 second
 	/** Number of last stored requests */
@@ -54,14 +69,15 @@ public class RequestsMonitor implements Filter {
 	
 	/** Execution time threshold */
 	protected int     durationThreshold     = DEFAULT_DURATION_THRESHOLD ;
-	/** URL path to the monitor reporting */
-	protected String  reportingReqPath      = "/monitor" ;
 	/** Number of last stored requests */
 	protected int     logSize               = DEFAULT_LOG_SIZE ;
 	/** Number of top longest requests */
 	protected int     topTenSize            = DEFAULT_TOP_TEN_SIZE ;
 	/** Number of longest requests */
 	protected int     longestSize          = DEFAULT_LONGEST_SIZE ;
+
+	/** URL path to the monitor reporting */
+	protected String  reportingReqPath      = "/monitor" ;
 	/** Indicates if information are displayed in the output console of the server */
 	protected boolean traceFlag             = false ;
 	
@@ -178,34 +194,43 @@ public class RequestsMonitor implements Filter {
 	 * @see Filter#doFilter(ServletRequest, ServletResponse, FilterChain)
 	 */
 	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-
 		HttpServletRequest httpRequest = (HttpServletRequest) request ;
-		
 		
 		trace ("REQUEST RECEIVED : " + httpRequest.getRequestURL() );
 		trace ("getServletPath : " + httpRequest.getServletPath() + " getPathInfo : " + httpRequest.getPathInfo() );
 
 		String pathInfo = httpRequest.getServletPath() ;
-		if ( pathInfo != null && pathInfo.startsWith(reportingReqPath) ) {
-			reporting( (HttpServletResponse) response );
+		if( pathInfo != null && pathInfo.startsWith(reportingReqPath) ) {
+			// Monitoring
+			dispatch( httpRequest, (HttpServletResponse) response );
 		}
 		else {
-			countAllRequest++ ;
-			final long startTime = getTime();
+			// Standard "doFilter" method
+			doFilterStandard(httpRequest, response, chain);
+		}
+	}
+	
+	/**
+	 * Standard "doFilter" method with HTTP request statistics.
+	 * @param request HTTP request
+	 * @param response HTTP response
+	 * @param chain Filter chain
+	 * @throws IOException Error
+	 * @throws ServletException Error
+	 */
+	protected void doFilterStandard(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+		HttpServletRequest httpRequest = (HttpServletRequest) request ;
+		countAllRequest++ ;
+		final long startTime = getTime();
+		try {
+			//--- Chain (nothing to stop here)
+			chain.doFilter(request, response);
 			
-			try {
-				//--- Chain (nothing to stop here)
-				chain.doFilter(request, response);
-				
-			} finally {
-				final long elapsedTime = getTime() - startTime;
-				
-				
-
-				if ( elapsedTime > durationThreshold ) {
-					countLongTimeRequests++ ;
-					logRequest(httpRequest, startTime, elapsedTime);
-				}
+		} finally {
+			final long elapsedTime = getTime() - startTime;
+			if ( elapsedTime > durationThreshold ) {
+				countLongTimeRequests++ ;
+				logRequest(httpRequest, startTime, elapsedTime);
 			}
 		}
 	}
@@ -235,11 +260,100 @@ public class RequestsMonitor implements Filter {
 	}
 	
 	/**
+	 * Command for reporting.
+	 */
+	protected void dispatch(HttpServletRequest request, HttpServletResponse response) {
+		Map<String,String> params = getParameters(request);
+		action(params);
+		reporting(response);
+	}
+	
+	/**
+	 * Parse URL query string to get parameters.
+	 * @param request Request
+	 * @return Map of parameters
+	 */
+	protected Map<String, String> getParameters(HttpServletRequest request) {
+		Map<String, String> params = new HashMap<String, String>();
+		
+		String query = request.getQueryString();
+		if(query == null) {
+			return params;
+		}
+		
+		String[] querySplitteds = query.split("&");
+		for(String querySplitted : querySplitteds) {
+			int posEquals = querySplitted.indexOf('=');
+			if(posEquals == -1 || posEquals + 1 >= querySplitted.length()) {
+				continue;
+			}
+			String key = querySplitted.substring(0, posEquals);
+			String value = querySplitted.substring(posEquals + 1);
+			params.put(key, value);
+		}
+		
+		return params;
+	}
+	
+	/**
+	 * Actions on monitoring.
+	 * @param params Parameters
+	 */
+	protected void action(Map<String,String> params) {
+		
+		//--- Parameter : clean all logs
+		if(params.get(ATTRIBUTE_NAME_CLEAN) != null) {
+			if("true".equals(params.get(ATTRIBUTE_NAME_CLEAN))) {
+				logLines = new CircularStack(logSize);
+				topRequests = new TopRequests(topTenSize);
+				longestRequests = new LongestRequests(longestSize);
+			}
+		}
+		
+		//--- Parameter : request duration threshold
+		if(params.get(ATTRIBUTE_NAME_DURATION_THRESHOLD) != null) {
+			durationThreshold = parseInt( params.get(ATTRIBUTE_NAME_DURATION_THRESHOLD), durationThreshold );
+		}
+		
+		//--- Parameter : memory log size 
+		if(params.get(ATTRIBUTE_NAME_LOG_SIZE) != null) {
+			int logSizeNew = parseInt( params.get(ATTRIBUTE_NAME_LOG_SIZE), logSize );
+			if(logSizeNew != logSize) {
+				this.logSize = logSizeNew;
+				logLines = new CircularStack(logSize);
+			}
+		}
+
+		//--- Parameter : memory top ten size 
+		if(params.get(ATTRIBUTE_NAME_TOP_TEN_SIZE) != null) {
+			int topTenSizeNew = parseInt( params.get(ATTRIBUTE_NAME_TOP_TEN_SIZE), topTenSize );
+			if(topTenSizeNew != topTenSize) {
+				this.topTenSize = topTenSizeNew;
+				topRequests = new TopRequests(topTenSize);
+			}
+		}
+
+		//--- Parameter : memory longest requests size 
+		if(params.get(ATTRIBUTE_NAME_LONGEST_SIZE) != null) {
+			int longestSizeNew = parseInt( params.get(ATTRIBUTE_NAME_LONGEST_SIZE), longestSize );
+			if(longestSizeNew != longestSize) {
+				this.longestSize = longestSizeNew;
+				longestRequests = new LongestRequests(longestSize);
+			}
+		}
+		
+		//--- Parameter : trace
+		if(params.get(ATTRIBUTE_NAME_TRACE_FLAG) != null) {
+			String traceParam = params.get(ATTRIBUTE_NAME_TRACE_FLAG);
+			traceFlag = "true".equalsIgnoreCase(traceParam) ;
+		}
+	}
+	
+	/**
 	 * Reports the current status in plain text
 	 * @param response HTTP response
 	 */
 	protected final void reporting (HttpServletResponse response) {
-		
 		response.setContentType("text/plain");
 		
 		//--- Prevent caching
