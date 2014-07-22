@@ -47,6 +47,14 @@ public class Request implements Serializable {
 		return sb.toString();
 	}
 	
+	public String getURL() {
+		if ( queryString != null ) {
+			return requestURL + "?" + queryString;
+		} else {
+			return requestURL;
+		}
+	}
+	
 	public long getStartTime() {
 		return startTime;
 	}

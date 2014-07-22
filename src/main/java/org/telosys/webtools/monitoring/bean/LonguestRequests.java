@@ -18,23 +18,23 @@ public class LonguestRequests {
 	
 	public void add(Request request) {
 		if(minTime == null) {
-			requestsByTimes.put(request.getRequestURL(), request);
+			requestsByTimes.put(request.getURL(), request);
 			calculateMinimum();
 		} else {
-			if(requestsByTimes.size() < size) {
-				requestsByTimes.put(request.getRequestURL(), request);
-				calculateMinimum();
+			if(requestsByTimes.containsKey(request.getURL())) {
+				Request requestStored = requestsByTimes.get(request.getURL());
+				if(requestStored.getElapsedTime() < request.getElapsedTime()) {
+					requestsByTimes.put(request.getURL(), request);
+					calculateMinimum();
+				}
 			} else {
-				if(requestsByTimes.containsKey(request.getRequestURL())) {
-					Request requestStored = requestsByTimes.get(request.getRequestURL());
-					if(requestStored.getElapsedTime() < request.getElapsedTime()) {
-						requestsByTimes.put(request.getRequestURL(), request);
-						calculateMinimum();
-					}
+				if(requestsByTimes.size() < size) {
+					requestsByTimes.put(request.getURL(), request);
+					calculateMinimum();
 				} else {
 					if(minTime < request.getElapsedTime()) {
 						requestsByTimes.remove(minURL);
-						requestsByTimes.put(request.getRequestURL(), request);
+						requestsByTimes.put(request.getURL(), request);
 						calculateMinimum();
 					}
 				}
@@ -48,7 +48,7 @@ public class LonguestRequests {
 		for(Request request : requestsByTimes.values()) {
 			if(minTime == null || minTime > request.getElapsedTime()) {
 				minTime = request.getElapsedTime();
-				minURL = request.getRequestURL();
+				minURL = request.getURL();
 			}
 		}
 		this.minURL = minURL;
