@@ -182,6 +182,8 @@ public class RequestsMonitor implements Filter {
 				
 			} finally {
 				final long elapsedTime = getTime() - startTime;
+				
+				
 
 				if ( elapsedTime > durationThreshold ) {
 					countLongTimeRequests++ ;
