@@ -45,5 +45,4 @@ HOW TO USE
 ```
 * Do not forget to restart your application server
 * Navigate in your web application
-* After some times, go the monitoring report page by the root URL of your application ending by "/monitoring"
-  For example, if the base URL of your application is ```http://my.application/web```, the URL to acces to the report page will be ````http://my.application/web/monitoring```.
+* After some times, go the monitoring report page by the base URL of your application ending by "/monitoring". For example, if the base URL of your application is ```http://my.application/web```, the URL to acces to the report page will be ````http://my.application/web/monitoring```.
