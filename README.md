@@ -1,4 +1,4 @@
-How to use
+How to install
 ==========
 
 * Download the JAR : telosys-monitoring.jar
@@ -57,6 +57,20 @@ if the base URL of your application is : http://my.application/web
 then the URL of the report page is : http://my.application/web/monitoring
 
 "/monitoring" can be redefined in the web.xml by the init-param "reporting" of the "telosys-monitoring" filter.
+
+Actions
+-------
+
+You can change monitoring values with parameters in the "/monitoring" URL :
+* ```action=clear``` : clear all logs
+* ```duration=``` : request duration threshold
+* ```logsize=``` : number of requests in the log
+* ```topsize=``` : number of the top longuest requests
+* ```longuestsize=``` : number of the longuest requests
+
+
+
+
 Contact
 ---
 
