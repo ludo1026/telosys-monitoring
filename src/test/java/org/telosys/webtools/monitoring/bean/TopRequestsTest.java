@@ -1,6 +1,7 @@
 package org.telosys.webtools.monitoring.bean;
 
-import static junit.framework.Assert.assertEquals;
+
+import static org.junit.Assert.assertEquals;
 
 import java.util.List;
 
