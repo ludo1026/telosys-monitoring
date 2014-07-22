@@ -30,7 +30,7 @@ public class CircularStack {
 		return index;
 	}
 	
-	public synchronized List<Request> getAllAscendant() {
+	public synchronized List<Request> getAllAscending() {
 		List<Request> results = new ArrayList<Request>();
 		int index = this.nextIndex;
 		boolean completed = this.completed;
@@ -45,7 +45,7 @@ public class CircularStack {
 		return results;
 	}
 	
-	public synchronized List<Request> getAllDescendant() {
+	public synchronized List<Request> getAllDescending() {
 		List<Request> results = new ArrayList<Request>();
 		int index = this.nextIndex;
 		boolean completed = this.completed;

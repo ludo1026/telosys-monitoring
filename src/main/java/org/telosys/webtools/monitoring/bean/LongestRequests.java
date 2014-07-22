@@ -5,14 +5,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class LonguestRequests {
+public class LongestRequests {
 	
 	private Map<String, Request> requestsByTimes = new HashMap<String, Request>();
 	private final int size;
 	private String minURL = null;
 	private Long minTime = null;
 	
-	public LonguestRequests(int size) {
+	public LongestRequests(int size) {
 		this.size = size;
 	}
 	
@@ -55,7 +55,7 @@ public class LonguestRequests {
 		this.minTime = minTime;
 	}
 	
-	public List<Request> getAllDescendants() {
+	public List<Request> getAllDescending() {
 		List<Request> requests = new ArrayList<Request>();
 		for(Request request : requestsByTimes.values()) {
 			if(request != null) {

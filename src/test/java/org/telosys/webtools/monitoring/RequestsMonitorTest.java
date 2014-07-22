@@ -48,7 +48,7 @@ public class RequestsMonitorTest {
 		assertEquals(RequestsMonitor.DEFAULT_DURATION_THRESHOLD, requestsMonitor.durationThreshold);
 		assertEquals(RequestsMonitor.DEFAULT_LOG_SIZE, requestsMonitor.logSize);
 		assertEquals(RequestsMonitor.DEFAULT_TOP_TEN_SIZE, requestsMonitor.topTenSize);
-		assertEquals(RequestsMonitor.DEFAULT_LONGUEST_SIZE, requestsMonitor.longuestSize);
+		assertEquals(RequestsMonitor.DEFAULT_LONGEST_SIZE, requestsMonitor.longestSize);
 		assertEquals("/monitor", requestsMonitor.reportingReqPath);
 		assertFalse(requestsMonitor.traceFlag);
 		assertEquals("10.11.12.13", requestsMonitor.ipAddress);
@@ -69,7 +69,7 @@ public class RequestsMonitorTest {
 		when(filterConfig.getInitParameter("duration")).thenReturn("200");
 		when(filterConfig.getInitParameter("logsize")).thenReturn("300");
 		when(filterConfig.getInitParameter("toptensize")).thenReturn("400");
-		when(filterConfig.getInitParameter("longuestsize")).thenReturn("500");
+		when(filterConfig.getInitParameter("longestsize")).thenReturn("500");
 		when(filterConfig.getInitParameter("reporting")).thenReturn("/monitoring2");
 		when(filterConfig.getInitParameter("trace")).thenReturn("true");
 		
@@ -80,7 +80,7 @@ public class RequestsMonitorTest {
 		assertEquals(200, requestsMonitor.durationThreshold);
 		assertEquals(300, requestsMonitor.logSize);
 		assertEquals(400, requestsMonitor.topTenSize);
-		assertEquals(500, requestsMonitor.longuestSize);
+		assertEquals(500, requestsMonitor.longestSize);
 		assertEquals("/monitoring2", requestsMonitor.reportingReqPath);
 		assertTrue(requestsMonitor.traceFlag);
 		assertEquals("10.11.12.13", requestsMonitor.ipAddress);
@@ -124,7 +124,7 @@ public class RequestsMonitorTest {
 		verify(chain).doFilter(httpRequest1, response);
 		verify(chain).doFilter(httpRequest2, response);
 		
-		List<Request> requests = requestsMonitor.logLines.getAllAscendant();
+		List<Request> requests = requestsMonitor.logLines.getAllAscending();
 		assertEquals("1970/01/01 01:00:00 - 500 ms - http://request1.url?query1", requests.get(0).toString());
 		assertEquals("1970/01/01 01:00:01 - 500 ms - http://request2.url?query2", requests.get(1).toString());
 		
@@ -132,7 +132,7 @@ public class RequestsMonitorTest {
 		assertEquals("1970/01/01 01:00:00 - 500 ms - http://request1.url?query1", requests.get(0).toString());
 		assertEquals("1970/01/01 01:00:01 - 500 ms - http://request2.url?query2", requests.get(1).toString());
 		
-		requests = requestsMonitor.longuestRequests.getAllDescendants();
+		requests = requestsMonitor.longestRequests.getAllDescending();
 		assertEquals("1970/01/01 01:00:01 - 500 ms - http://request2.url?query2", requests.get(0).toString());
 		assertEquals("1970/01/01 01:00:00 - 500 ms - http://request1.url?query1", requests.get(1).toString());
 	}
@@ -144,7 +144,7 @@ public class RequestsMonitorTest {
 		
 		requestsMonitor.logLines = mock(CircularStack.class);
 		List<Request> lines = new ArrayList<Request>();
-		when(requestsMonitor.logLines.getAllAscendant()).thenReturn(lines);
+		when(requestsMonitor.logLines.getAllAscending()).thenReturn(lines);
 		Request r1 = new Request();
 		lines.add(r1);
 		r1.setStartTime(11000);
@@ -179,15 +179,15 @@ public class RequestsMonitorTest {
 		verify(out).println("Hostname : " + requestsMonitor.hostname );
 		verify(out).println("Duration threshold : " + requestsMonitor.durationThreshold );
 		verify(out).println("Log in memory size : " + requestsMonitor.logSize + " lines");
-		verify(out).println("Top longuest requests in memory size : " + requestsMonitor.topTenSize + " lines");
+		verify(out).println("Top longest requests in memory size : " + requestsMonitor.topTenSize + " lines");
 		verify(out).println("Initialization date/time : " + requestsMonitor.initializationDate );
 		verify(out).println("Total requests count     : " + requestsMonitor.countAllRequest);
 		verify(out).println("Long time requests count : " + requestsMonitor.countLongTimeRequests );
-		verify(out).println("" + lines.size() + " last long time requests : " );
+		verify(out).println("Last longest requests : " );
 		verify(out).println("1970/01/01 01:00:11 - 12 ms - requestURL1?queryString1");
 		verify(out).println("1970/01/01 01:00:21 - 22 ms - requestURL2?queryString2");
-		verify(out).println("Top " + requestsMonitor.topRequests.getAllDescending().size() + " of last long time requests : " );
-		verify(out).println(requestsMonitor.topRequests.getAllDescending().size() + " longuest requests : " );
+		verify(out).println("Top longest requests : " );
+		verify(out).println("Longest requests : " );
 	}
 	
 }

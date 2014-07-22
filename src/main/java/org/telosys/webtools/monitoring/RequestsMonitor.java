@@ -34,7 +34,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.telosys.webtools.monitoring.bean.CircularStack;
-import org.telosys.webtools.monitoring.bean.LonguestRequests;
+import org.telosys.webtools.monitoring.bean.LongestRequests;
 import org.telosys.webtools.monitoring.bean.Request;
 import org.telosys.webtools.monitoring.bean.TopRequests;
 
@@ -47,13 +47,13 @@ public class RequestsMonitor implements Filter {
 	protected final static int DEFAULT_DURATION_THRESHOLD  = 1000 ; // 1 second 
 	protected final static int DEFAULT_LOG_SIZE            =  100 ;
 	protected final static int DEFAULT_TOP_TEN_SIZE        =  10 ;
-	protected final static int DEFAULT_LONGUEST_SIZE       =  10 ;
+	protected final static int DEFAULT_LONGEST_SIZE       =  10 ;
 	
 	protected int     durationThreshold     = DEFAULT_DURATION_THRESHOLD ; 
 	protected String  reportingReqPath      = "/monitor" ; 
 	protected int     logSize               = DEFAULT_LOG_SIZE ;
 	protected int     topTenSize            = DEFAULT_TOP_TEN_SIZE ;
-	protected int     longuestSize          = DEFAULT_LONGUEST_SIZE ;
+	protected int     longestSize          = DEFAULT_LONGEST_SIZE ;
 	protected boolean traceFlag             = false ;
 	
 	protected String initializationDate     = "???" ; 
@@ -62,7 +62,7 @@ public class RequestsMonitor implements Filter {
 	
 	protected CircularStack logLines = new CircularStack(DEFAULT_LOG_SIZE);
 	protected TopRequests topRequests = new TopRequests(DEFAULT_TOP_TEN_SIZE);
-	protected LonguestRequests longuestRequests = new LonguestRequests(DEFAULT_LONGUEST_SIZE);
+	protected LongestRequests longestRequests = new LongestRequests(DEFAULT_LONGEST_SIZE);
 	
 	protected String ipAddress;
 	protected String hostname;
@@ -89,9 +89,9 @@ public class RequestsMonitor implements Filter {
 		topTenSize = parseInt( filterConfig.getInitParameter("toptensize"), DEFAULT_TOP_TEN_SIZE );
 		topRequests = new TopRequests(topTenSize);
 
-		//--- Parameter : memory longuest requests size 
-		longuestSize = parseInt( filterConfig.getInitParameter("longuestsize"), DEFAULT_LONGUEST_SIZE );
-		longuestRequests = new LonguestRequests(longuestSize);
+		//--- Parameter : memory longest requests size 
+		longestSize = parseInt( filterConfig.getInitParameter("longestsize"), DEFAULT_LONGEST_SIZE );
+		longestRequests = new LongestRequests(longestSize);
 
 		//--- Parameter : status report URI
 		String reportingParam = filterConfig.getInitParameter("reporting");
@@ -198,7 +198,7 @@ public class RequestsMonitor implements Filter {
 		
 		this.logLines.push(request);
 		this.topRequests.add(request);
-		this.longuestRequests.add(request);
+		this.longestRequests.add(request);
 		
 		trace(request);
 	}
@@ -229,7 +229,7 @@ public class RequestsMonitor implements Filter {
 			
 			out.println("Duration threshold : " + durationThreshold );
 			out.println("Log in memory size : " + logSize + " lines" );	
-			out.println("Top longuest requests in memory size : " + topTenSize + " lines" );	
+			out.println("Top longest requests in memory size : " + topTenSize + " lines" );	
 			out.println(" ");
 			
 			out.println("Initialization date/time : " + initializationDate );
@@ -237,22 +237,22 @@ public class RequestsMonitor implements Filter {
 			out.println("Long time requests count : " + countLongTimeRequests );
 			out.println(" ");
 			
-			List<Request> lines = logLines.getAllAscendant(); 
-			out.println("" + lines.size() + " last long time requests : " );
+			List<Request> lines = logLines.getAllAscending(); 
+			out.println("Last longest requests : " );
 			for ( Request line : lines ) {
 				out.println(line.toString());
 			}
 			
 			List<Request> requests = topRequests.getAllDescending(); 
 			out.println(" ");
-			out.println("Top " + requests.size() + " of last long time requests : " );
+			out.println("Top longest requests : " );
 			for ( Request request : requests ) {
 				out.println(request.toString());
 			}
 			
-			requests = longuestRequests.getAllDescendants(); 
+			requests = longestRequests.getAllDescending(); 
 			out.println(" ");
-			out.println(requests.size() + " longuest requests : " );
+			out.println("Longest requests : " );
 			for ( Request request : requests ) {
 				out.println(request.toString());
 			}

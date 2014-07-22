@@ -21,13 +21,6 @@ public class TopRequestsTest {
 		assertEquals(1, requests.size());
 		assertEquals(r1, requests.get(0));
 
-		Request r1_2 = new Request();
-		r1_2.setElapsedTime(8);
-		topRequests.add(r1_2);
-		requests = topRequests.getAllDescending();
-		assertEquals(1, requests.size());
-		assertEquals(r1, requests.get(0));
-		
 		Request r2 = new Request();
 		r2.setElapsedTime(12);
 		topRequests.add(r2);
