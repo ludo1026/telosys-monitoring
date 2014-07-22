@@ -29,11 +29,7 @@ How to install
     </init-param>
     <init-param>
     	<param-name>reporting</param-name>
-    	<param-value>/monitoring</param-value> <!-- default is "/monitor" -->
-    </init-param>
-    <init-param>
-    	<param-name>trace</param-name>
-    	<param-value>false</param-value> <!-- default is false -->
+    	<param-value>/monitor</param-value> <!-- default is "/monitor" -->
     </init-param>
   </filter>
   <filter-mapping>
@@ -48,15 +44,15 @@ How to install
 
 ### Monitoring Report page
 
-* Go the monitoring report page. For that, add "/monitoring" at the end of the base URL of your application
+* Go to the monitor report page. For that, add "/monitor" at the end of the base URL of your application
 
 _Example :_
 
 if the base URL of your application is : http://my.application/web
 
-then the URL of the report page is : http://my.application/web/monitoring
+then the URL of the report page is : http://my.application/web/monitor
 
-"/monitoring" can be redefined in the web.xml by the init-param "reporting" of the "telosys-monitoring" filter.
+"/monitor" can be redefined in the web.xml by the init-param "reporting" of the "telosys-monitoring" filter.
 
 Actions
 -------
