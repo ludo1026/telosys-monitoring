@@ -146,6 +146,9 @@ public class RequestsMonitor implements Filter {
 	public void init(FilterConfig filterConfig) throws ServletException {
 		initValues(filterConfig);
 		reset();
+		if(reportingReqPath == null || "".equals(reportingReqPath.trim())) {
+			throw new ServletException("URL path of the report page is not defined. Please verify in the web.xml the value of the init-param 'reporting' which must not be empty.");
+		}
 	}
 	
 	/**
@@ -267,21 +270,32 @@ public class RequestsMonitor implements Filter {
 	/**
 	 * @see Filter#doFilter(ServletRequest, ServletResponse, FilterChain)
 	 */
-	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-		HttpServletRequest httpRequest = (HttpServletRequest) request ;
-		
-		trace ("REQUEST RECEIVED : " + httpRequest.getRequestURL() );
-		trace ("getServletPath : " + httpRequest.getServletPath() + " getPathInfo : " + httpRequest.getPathInfo() );
-
-		String pathInfo = httpRequest.getServletPath() ;
-		if( pathInfo != null && pathInfo.startsWith(reportingReqPath) ) {
-			// Monitoring
-			dispatch( httpRequest, (HttpServletResponse) response );
+	public void doFilter(ServletRequest servletRequest, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+		if( isRequestForReportPage(servletRequest) ) {
+			// Report page
+			dispatch( (HttpServletRequest) servletRequest, (HttpServletResponse) response );
 		}
 		else {
 			// Standard "doFilter" method
-			doFilterStandard(httpRequest, response, chain);
+			doFilterStandard(servletRequest, response, chain);
 		}
+	}
+	
+	/**
+	 * Indicates if the request is to access to the report page.
+	 * @param httpRequest HTTP request.
+	 * @return boolean.
+	 */
+	protected boolean isRequestForReportPage(ServletRequest servletRequest) {
+		if(!(servletRequest instanceof HttpServletRequest)) {
+			return false;
+		}
+		if(reportingReqPath == null || "".equals(reportingReqPath.trim())) {
+			return false;
+		}
+		HttpServletRequest httpRequest = (HttpServletRequest) servletRequest;
+		String pathInfo = httpRequest.getServletPath();
+		return (pathInfo != null && pathInfo.startsWith(reportingReqPath));
 	}
 	
 	/**
@@ -293,10 +307,10 @@ public class RequestsMonitor implements Filter {
 	 * @throws ServletException Error
 	 */
 	protected void doFilterStandard(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-		HttpServletRequest httpRequest = (HttpServletRequest) request ;
 		incrementCountAllRequest();
 		final long startTime = getTime();
 		try {
+			
 			//--- Chain (nothing to stop here)
 			chain.doFilter(request, response);
 			
@@ -304,7 +318,7 @@ public class RequestsMonitor implements Filter {
 			final long elapsedTime = getTime() - startTime;
 			if ( elapsedTime > durationThreshold ) {
 				incrementCountLongTimeRequests();
-				logRequest(httpRequest, startTime, elapsedTime);
+				logRequest(request, startTime, elapsedTime);
 			}
 		}
 	}
@@ -329,8 +343,8 @@ public class RequestsMonitor implements Filter {
 	 * @param startTime Start date
 	 * @param elapsedTime Execution time
 	 */
-	protected final void logRequest(HttpServletRequest httpRequest, long startTime, long elapsedTime ) {
-		Request request = createRequest(httpRequest, startTime, elapsedTime);
+	protected final void logRequest(ServletRequest servletRequest, long startTime, long elapsedTime ) {
+		Request request = createRequest(servletRequest, startTime, elapsedTime);
 		
 		this.logLines.add(request);
 		this.topRequests.add(request);
@@ -346,14 +360,22 @@ public class RequestsMonitor implements Filter {
 	 * @param elapsedTime Request execution time
 	 * @return
 	 */
-	protected Request createRequest(HttpServletRequest httpRequest, long startTime, long elapsedTime) {
+	protected Request createRequest(ServletRequest servletRequest, long startTime, long elapsedTime) {
 		Request request = new Request();
 		request.setElapsedTime(elapsedTime);
 		request.setStartTime(startTime);
-		request.setPathInfo(httpRequest.getPathInfo());
-		request.setQueryString(httpRequest.getQueryString());
-		request.setRequestURL(httpRequest.getRequestURL().toString());
-		request.setServletPath(httpRequest.getServletPath());
+		if(servletRequest instanceof HttpServletRequest) {
+			HttpServletRequest httpServletRequest = (HttpServletRequest) servletRequest;
+			request.setPathInfo(httpServletRequest.getPathInfo());
+			request.setQueryString(httpServletRequest.getQueryString());
+			request.setRequestURL(httpServletRequest.getRequestURL().toString());
+			request.setServletPath(httpServletRequest.getServletPath());
+		} else {
+			request.setPathInfo("");
+			request.setQueryString("");
+			request.setRequestURL("");
+			request.setServletPath("");
+		}
 		request.setCountAllRequest(countAllRequest);
 		request.setCountLongTimeRequests(countLongTimeRequests);
 		return request;
@@ -362,10 +384,10 @@ public class RequestsMonitor implements Filter {
 	/**
 	 * Command for reporting.
 	 */
-	protected void dispatch(HttpServletRequest request, HttpServletResponse response) {
-		Map<String,String> params = getParameters(request);
+	protected void dispatch(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
+		Map<String,String> params = getParameters(httpServletRequest);
 		action(params);
-		reporting(response);
+		reporting(httpServletResponse);
 	}
 	
 	/**
@@ -373,16 +395,19 @@ public class RequestsMonitor implements Filter {
 	 * @param request Request
 	 * @return Map of parameters
 	 */
-	protected Map<String, String> getParameters(HttpServletRequest request) {
+	protected Map<String, String> getParameters(HttpServletRequest httpServletRequest) {
 		Map<String, String> params = new HashMap<String, String>();
 		
-		String query = request.getQueryString();
+		String query = httpServletRequest.getQueryString();
 		if(query == null) {
 			return params;
 		}
 		
 		String[] querySplitteds = query.split("&");
 		for(String querySplitted : querySplitteds) {
+			if(querySplitted == null || "".equals(querySplitted.trim())) {
+				continue;
+			}
 			int posEquals = querySplitted.indexOf('=');
 			if(posEquals == -1 || posEquals + 1 >= querySplitted.length()) {
 				continue;
@@ -484,24 +509,30 @@ public class RequestsMonitor implements Filter {
 			out.println("Long time requests count : " + countLongTimeRequests );
 			out.println(" ");
 			
-			List<Request> lines = logLines.getAllAscending(); 
+			List<Request> requests = logLines.getAllAscending(); 
 			out.println("Last longest requests : " );
-			for ( Request line : lines ) {
-				out.println(line.toString());
+			for ( Request request : requests ) {
+				if(request != null) {
+					out.println(request.toString());
+				}
 			}
 			
-			List<Request> requests = topRequests.getAllDescending(); 
+			requests = topRequests.getAllDescending(); 
 			out.println(" ");
 			out.println("Top longest requests : " );
 			for ( Request request : requests ) {
-				out.println(request.toStringWithoutCounting());
+				if(request != null) {
+					out.println(request.toStringWithoutCounting());
+				}
 			}
 			
 			requests = longestRequests.getAllDescending(); 
 			out.println(" ");
 			out.println("Longest requests : " );
 			for ( Request request : requests ) {
-				out.println(request.toStringWithoutCounting());
+				if(request != null) {
+					out.println(request.toStringWithoutCounting());
+				}
 			}
 			
 			out.close();
