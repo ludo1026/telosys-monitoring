@@ -235,6 +235,96 @@ public class RequestsMonitorTest {
 	}
 
 	@Test
+	public void testActionClean() {
+		// Given
+		RequestsMonitor requestsMonitor = new RequestsMonitor();
+		
+		CircularStack logLines = requestsMonitor.logLines = mock(CircularStack.class);
+		TopRequests topRequests = requestsMonitor.topRequests = mock(TopRequests.class);
+		LongestRequests longestRequests = requestsMonitor.longestRequests = mock(LongestRequests.class);
+		
+		requestsMonitor.logSize = 300;
+		requestsMonitor.topTenSize = 400;
+		requestsMonitor.longestSize = 500;
+		
+		Map<String,String> params = new HashMap<String,String>();
+		params.put(RequestsMonitor.ATTRIBUTE_NAME_ACTION, RequestsMonitor.ATTRIBUTE_VALUE_ACTION_CLEAR);
+		
+		// When
+		requestsMonitor.action(params);
+		
+		// Then
+		assertNotEquals(logLines, requestsMonitor.logLines);
+		assertNotEquals(topRequests, requestsMonitor.topRequests);
+		assertNotEquals(longestRequests, requestsMonitor.longestRequests);
+	}
+
+	@Test
+	public void testActionReset() throws ServletException {
+		
+		/**
+		 * 1: filter initialization
+		 */
+
+		// Given
+		RequestsMonitor requestsMonitor = spy(new RequestsMonitor());
+
+		InetAddress adrLocale = mock(InetAddress.class);
+		doReturn(adrLocale).when(requestsMonitor).getLocalHost();
+		when(adrLocale.getHostAddress()).thenReturn("10.11.12.13");
+		when(adrLocale.getHostName()).thenReturn("hostname");
+		
+		FilterConfig filterConfig = mock(FilterConfig.class);
+		
+		// When
+		requestsMonitor.init(filterConfig);
+		
+		// Then
+		assertEquals(RequestsMonitor.DEFAULT_DURATION_THRESHOLD, requestsMonitor.durationThreshold);
+		assertEquals(RequestsMonitor.DEFAULT_LOG_SIZE, requestsMonitor.logSize);
+		assertEquals(RequestsMonitor.DEFAULT_TOP_TEN_SIZE, requestsMonitor.topTenSize);
+		assertEquals(RequestsMonitor.DEFAULT_LONGEST_SIZE, requestsMonitor.longestSize);
+		assertEquals("/monitor", requestsMonitor.reportingReqPath);
+		assertFalse(requestsMonitor.traceFlag);
+		assertEquals("10.11.12.13", requestsMonitor.ipAddress);
+		assertEquals("hostname", requestsMonitor.hostname);
+		
+		/**
+		 * 2: filter update
+		 */
+
+		requestsMonitor.durationThreshold = 1;
+		requestsMonitor.logSize = 2;
+		requestsMonitor.topTenSize = 3;
+		requestsMonitor.longestSize = 4;
+		requestsMonitor.reportingReqPath = "test";
+		requestsMonitor.traceFlag = true;
+		requestsMonitor.ipAddress = "1.2.3.4";
+		requestsMonitor.hostname = "test2";
+
+		/**
+		 * 3: filter reset
+		 */
+		
+		// Given
+		Map<String,String> params = new HashMap<String,String>();
+		params.put(RequestsMonitor.ATTRIBUTE_NAME_ACTION, RequestsMonitor.ATTRIBUTE_VALUE_ACTION_RESET);
+		
+		// When
+		requestsMonitor.action(params);
+		
+		// Then
+		assertEquals(RequestsMonitor.DEFAULT_DURATION_THRESHOLD, requestsMonitor.durationThreshold);
+		assertEquals(RequestsMonitor.DEFAULT_LOG_SIZE, requestsMonitor.logSize);
+		assertEquals(RequestsMonitor.DEFAULT_TOP_TEN_SIZE, requestsMonitor.topTenSize);
+		assertEquals(RequestsMonitor.DEFAULT_LONGEST_SIZE, requestsMonitor.longestSize);
+		assertEquals("/monitor", requestsMonitor.reportingReqPath);
+		assertFalse(requestsMonitor.traceFlag);
+		assertEquals("10.11.12.13", requestsMonitor.ipAddress);
+		assertEquals("hostname", requestsMonitor.hostname);
+	}
+	
+	@Test
 	public void testDoFilter() throws IOException, ServletException {
 		// Given
 		RequestsMonitor requestsMonitor = spy(new RequestsMonitor());

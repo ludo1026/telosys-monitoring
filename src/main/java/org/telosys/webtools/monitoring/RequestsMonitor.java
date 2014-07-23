@@ -107,6 +107,33 @@ public class RequestsMonitor implements Filter {
 	/** Host name */
 	protected String hostname;
 	
+	/** Init values from web.xml configuration. */
+	protected InitValues initValues;
+	
+	/**
+	 * Init values.
+	 */
+	protected static class InitValues {
+		/** Execution time threshold */
+		protected int     durationThreshold     = DEFAULT_DURATION_THRESHOLD ;
+		/** Number of last stored requests */
+		protected int     logSize               = DEFAULT_LOG_SIZE ;
+		/** Number of top longest requests */
+		protected int     topTenSize            = DEFAULT_TOP_TEN_SIZE ;
+		/** Number of longest requests */
+		protected int     longestSize          = DEFAULT_LONGEST_SIZE ;
+
+		/** URL path to the monitor reporting */
+		protected String  reportingReqPath      = "/monitor" ;
+		/** Indicates if information are displayed in the output console of the server */
+		protected boolean traceFlag             = false ;
+		
+		/** Count all requests */
+		protected long   countAllRequest        = 0 ; 
+		/** Count longest requests */
+		protected long   countLongTimeRequests  = 0 ; 
+	}
+	
     /**
      * Default constructor. 
      */
@@ -117,33 +144,73 @@ public class RequestsMonitor implements Filter {
 	 * @see Filter#init(FilterConfig)
 	 */
 	public void init(FilterConfig filterConfig) throws ServletException {
+		initValues(filterConfig);
+		reset();
+	}
+	
+	/**
+	 * Save init values from web.xml configuration.
+	 * @param filterConfig Filter configuration
+	 * @throws ServletException Error
+	 */
+	protected void initValues(FilterConfig filterConfig) throws ServletException {
+		this.initValues = new InitValues();
 		
 		//--- Parameter : duration threshold
-		durationThreshold = parseInt( filterConfig.getInitParameter("duration"), DEFAULT_DURATION_THRESHOLD );
+		this.initValues.durationThreshold = parseInt( filterConfig.getInitParameter("duration"), DEFAULT_DURATION_THRESHOLD );
 
 		//--- Parameter : memory log size 
-		logSize = parseInt( filterConfig.getInitParameter("logsize"), DEFAULT_LOG_SIZE );
-		logLines = new CircularStack(logSize);
-
+		this.initValues.logSize = parseInt( filterConfig.getInitParameter("logsize"), DEFAULT_LOG_SIZE );
+		
 		//--- Parameter : memory top ten size 
-		topTenSize = parseInt( filterConfig.getInitParameter("toptensize"), DEFAULT_TOP_TEN_SIZE );
-		topRequests = new TopRequests(topTenSize);
-
+		this.initValues.topTenSize = parseInt( filterConfig.getInitParameter("toptensize"), DEFAULT_TOP_TEN_SIZE );
+		
 		//--- Parameter : memory longest requests size 
-		longestSize = parseInt( filterConfig.getInitParameter("longestsize"), DEFAULT_LONGEST_SIZE );
-		longestRequests = new LongestRequests(longestSize);
-
+		this.initValues.longestSize = parseInt( filterConfig.getInitParameter("longestsize"), DEFAULT_LONGEST_SIZE );
+		
 		//--- Parameter : status report URI
 		String reportingParam = filterConfig.getInitParameter("reporting");
 		if ( reportingParam != null ) {
-			reportingReqPath = reportingParam ;
+			this.initValues.reportingReqPath = reportingParam ;
 		}
 		
 		//--- Parameter : trace
 		String traceParam = filterConfig.getInitParameter("trace");
 		if ( traceParam != null ) {
-			traceFlag = traceParam.equalsIgnoreCase("true") ;
+			this.initValues.traceFlag = traceParam.equalsIgnoreCase("true") ;
 		}
+		
+		InetAddress adrLocale = getLocalHost();
+		if(adrLocale == null) {
+			ipAddress = "unknown";
+			hostname = "unknwon";
+		} else {
+			ipAddress = adrLocale.getHostAddress();
+			hostname = adrLocale.getHostName();
+		}
+	}
+	
+	protected void reset() {
+		//--- Parameter : duration threshold
+		durationThreshold = this.initValues.durationThreshold;
+
+		//--- Parameter : memory log size 
+		logSize = this.initValues.logSize;
+		logLines = new CircularStack(logSize);
+
+		//--- Parameter : memory top ten size 
+		topTenSize = this.initValues.topTenSize;
+		topRequests = new TopRequests(topTenSize);
+
+		//--- Parameter : memory longest requests size 
+		longestSize = this.initValues.longestSize;
+		longestRequests = new LongestRequests(longestSize);
+
+		//--- Parameter : status report URI
+		reportingReqPath = this.initValues.reportingReqPath;
+		
+		//--- Parameter : trace
+		traceFlag = this.initValues.traceFlag;
 		
 		initializationDate = format( new Date() );
 		trace ("MONITOR INITIALIZED. durationThreshold = " + durationThreshold + ", reportingReqPath = " + reportingReqPath );
@@ -342,7 +409,7 @@ public class RequestsMonitor implements Filter {
 				longestRequests = new LongestRequests(this.longestSize);
 			}
 			if(ATTRIBUTE_VALUE_ACTION_RESET.equals(params.get(ATTRIBUTE_NAME_ACTION))) {
-				// reset
+				reset();
 			}
 		}
 		

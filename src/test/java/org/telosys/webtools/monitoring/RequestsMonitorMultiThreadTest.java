@@ -21,8 +21,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
 
 import javax.servlet.ServletException;
 
@@ -37,15 +35,16 @@ public class RequestsMonitorMultiThreadTest {
 	public void initDefaults() throws ServletException, InterruptedException {
 		System.out.println("Test - Begin");
 		
+		RequestsMonitor.InitValues initValues = new RequestsMonitor.InitValues();
+		initValues.durationThreshold = -999;
+		initValues.logSize = 100000;
+		initValues.topTenSize = 100000;
+		initValues.longestSize = 100000;
+		initValues.traceFlag = false;
+		
 		RequestsMonitor requestsMonitor = new RequestsMonitor();
-		requestsMonitor.durationThreshold = -999;
-		requestsMonitor.logSize = 100000;
-		requestsMonitor.logLines = new CircularStack(requestsMonitor.logSize);
-		requestsMonitor.topTenSize = 100000;
-		requestsMonitor.topRequests = new TopRequests(requestsMonitor.topTenSize);
-		requestsMonitor.longestSize = 100000;
-		requestsMonitor.longestRequests = new LongestRequests(requestsMonitor.longestSize);
-		requestsMonitor.traceFlag = false;
+		requestsMonitor.initValues = initValues;
+		requestsMonitor.reset();
 		
 		int nbRequestsBySender = 50;
 		int nbThreads = 1000;
@@ -75,9 +74,11 @@ public class RequestsMonitorMultiThreadTest {
 		startSignal.countDown();
 		
 		// Random actions
+		int count = 0;
 		while(doneSignal.getCount() > 0) {
 			Thread.sleep(delayAction);
-			randomActions(requestsMonitor, random);
+			randomActions(requestsMonitor, random, count);
+			count++;
 		}
 		doneSignal.await();
 		
@@ -90,8 +91,8 @@ public class RequestsMonitorMultiThreadTest {
 		System.out.println("by_url : " + requestsMonitor.longestRequests.getAllDescending().size());
 	}
 	
-	public void randomActions(RequestsMonitor requestsMonitor, Random random) {
-		if(random.nextInt(50) == 25) {
+	public void randomActions(RequestsMonitor requestsMonitor, Random random, int count) {
+		if(count % 10 == 5) {
 			// reset
 			requestsMonitor.action(getParams("action", "reset"));
 		}
