@@ -27,7 +27,7 @@ import java.util.TreeSet;
 public class TopRequests {
 	
 	/** Array of stored requests */
-	private Request[] requests;
+	private final Request[] requests;
 	/** Position and value of the shortest stored request in the requests array */ 
 	private ValuePosition minimum;
 	/** Indicates if the requests array is completed */
@@ -80,65 +80,6 @@ public class TopRequests {
 		this.minimum = getMinimum();
 	}
 	
-	/**
-	 * Copy this instance with a new size.
-	 * @param size New number of requests in the array.
-	 * @return Copy
-	 */
-	public synchronized TopRequests copy(int size) {
-		TopRequests topRequests = new TopRequests(size);
-		List<Request> requests = this.getAllDescending();
-		int pos = 0;
-		for(Request request : requests) {
-			if(pos >= size) {
-				break;
-			}
-			topRequests.requests[pos] = request;
-			pos++;
-		}
-		if(pos >= size) {
-			topRequests.completed = true;
-		}
-		this.minimum = getMinimum();
-		return topRequests;
-	}
-	
-	/**
-	 * Copy this instance with a new size.
-	 * @param size New number of requests in the array.
-	 * @return Copy
-	 */
-	public synchronized void resize(int size) {
-		/** Like Constructor */
-		
-		// Création du tableau des requêtes
-		Request[] requests = new Request[size];
-		// Le tableau des requêtes est vide : il n'est donc pas entièrement rempli
-		boolean completed = false;
-		// Cas de départ : la première requête sera stockée dans la position 0 du tableau des requêtes
-		ValuePosition minimum = new ValuePosition();
-		minimum.position = 0;
-		
-		/** Copy data */
-		int pos = 0;
-		for(Request request : this.getAllDescending()) {
-			if(pos >= size) {
-				break;
-			}
-			requests[pos] = request;
-			pos++;
-		}
-		if(pos >= size) {
-			completed = true;
-		}
-		minimum = getMinimum();
-		
-		/** Define data on current instance */
-		this.requests = requests;
-		this.completed = completed;
-		this.minimum = minimum;
-	}
-
 	/**
 	 * Add new request.
 	 * @param request Request
@@ -217,5 +158,5 @@ public class TopRequests {
 		all.sort(new RequestComparator(false));
 		return all;
 	}
-	
+
 }

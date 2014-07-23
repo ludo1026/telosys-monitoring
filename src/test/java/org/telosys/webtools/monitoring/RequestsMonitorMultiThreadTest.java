@@ -39,11 +39,11 @@ public class RequestsMonitorMultiThreadTest {
 		
 		RequestsMonitor requestsMonitor = new RequestsMonitor();
 		requestsMonitor.durationThreshold = -999;
-		requestsMonitor.logSize = 100;
+		requestsMonitor.logSize = 100000;
 		requestsMonitor.logLines = new CircularStack(requestsMonitor.logSize);
-		requestsMonitor.topTenSize = 100;
+		requestsMonitor.topTenSize = 100000;
 		requestsMonitor.topRequests = new TopRequests(requestsMonitor.topTenSize);
-		requestsMonitor.longestSize = 100;
+		requestsMonitor.longestSize = 100000;
 		requestsMonitor.longestRequests = new LongestRequests(requestsMonitor.longestSize);
 		requestsMonitor.traceFlag = false;
 		
@@ -77,9 +77,8 @@ public class RequestsMonitorMultiThreadTest {
 		// Random actions
 		while(doneSignal.getCount() > 0) {
 			Thread.sleep(delayAction);
-			randomActions(requestsMonitor);
+			randomActions(requestsMonitor, random);
 		}
-		
 		doneSignal.await();
 		
 		System.out.println("Test - End");
@@ -91,9 +90,21 @@ public class RequestsMonitorMultiThreadTest {
 		System.out.println("by_url : " + requestsMonitor.longestRequests.getAllDescending().size());
 	}
 	
-	public void randomActions(RequestsMonitor requestsMonitor) {
-		// System.out.println("Action : clear");
-		requestsMonitor.action(getParams("action", "clear"));
+	public void randomActions(RequestsMonitor requestsMonitor, Random random) {
+		if(random.nextInt(50) == 25) {
+			// reset
+			requestsMonitor.action(getParams("action", "reset"));
+		}
+		if(random.nextInt(50) == 25) {
+			// clear
+			requestsMonitor.action(getParams("action", "clear"));
+		}
+		// log size
+		requestsMonitor.action(getParams(RequestsMonitor.ATTRIBUTE_NAME_LOG_SIZE, ""+(random.nextInt(150)+1)));
+		// by time size
+		requestsMonitor.action(getParams(RequestsMonitor.ATTRIBUTE_NAME_BY_TIME_SIZE, ""+(random.nextInt(150)+1)));
+		// by url size
+		requestsMonitor.action(getParams(RequestsMonitor.ATTRIBUTE_NAME_BY_URL_SIZE, ""+(random.nextInt(150)+1)));
 	}
 	
 	private Map<String,String> getParams(String key, String name) {

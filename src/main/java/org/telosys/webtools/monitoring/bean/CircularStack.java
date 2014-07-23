@@ -27,7 +27,7 @@ public class CircularStack {
 	/** Number of stored requests. */
 	protected final int size;
 	/** Array of stored requests */
-	protected final Request[] arrays;
+	protected Request[] arrays;
 	/** Position of the next request in the array */ 
 	protected int nextIndex = 0;
 	/** Indicates if the array is completed */
@@ -41,7 +41,7 @@ public class CircularStack {
 		this.size = size;
 		this.arrays = new Request[size];
 	}
-	
+
 	/**
 	 * Copy constructor.
 	 * @param size Number of stored requests
@@ -64,7 +64,7 @@ public class CircularStack {
 			this.nextIndex = pos;
 		}
 	}
-	
+
 	/**
 	 * Add new request in the stack.
 	 * @param request Request.
@@ -125,5 +125,5 @@ public class CircularStack {
 		}
 		return results;
 	}
-	
+
 }

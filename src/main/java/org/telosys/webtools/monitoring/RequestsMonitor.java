@@ -337,9 +337,9 @@ public class RequestsMonitor implements Filter {
 		//--- Parameter : clean all logs
 		if(params.get(ATTRIBUTE_NAME_ACTION) != null) {
 			if(ATTRIBUTE_VALUE_ACTION_CLEAR.equals(params.get(ATTRIBUTE_NAME_ACTION))) {
-				logLines = new CircularStack(logLines, logSize);
-				topRequests = new TopRequests(topRequests, topTenSize);
-				longestRequests = new LongestRequests(longestRequests, longestSize);
+				logLines = new CircularStack(this.logSize);
+				topRequests = new TopRequests(this.topTenSize);
+				longestRequests = new LongestRequests(this.longestSize);
 			}
 			if(ATTRIBUTE_VALUE_ACTION_RESET.equals(params.get(ATTRIBUTE_NAME_ACTION))) {
 				// reset
@@ -365,7 +365,7 @@ public class RequestsMonitor implements Filter {
 			int topTenSizeNew = parseInt( params.get(ATTRIBUTE_NAME_BY_TIME_SIZE), topTenSize );
 			if(topTenSizeNew != topTenSize) {
 				this.topTenSize = topTenSizeNew;
-				topRequests = new TopRequests(topTenSize);
+				topRequests = new TopRequests(topRequests, topTenSize);
 			}
 		}
 
