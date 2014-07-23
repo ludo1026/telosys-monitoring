@@ -46,7 +46,7 @@ import org.telosys.webtools.monitoring.bean.TopRequests;
 public class RequestsMonitor implements Filter {
 
 	/** Clean all logs */
-	protected final static String ATTRIBUTE_NAME_CLEAN = "clean";
+	protected final static String ATTRIBUTE_NAME_CLEAR = "clear";
 	/** Execution time threshold */
 	protected final static String ATTRIBUTE_NAME_DURATION_THRESHOLD = "duration";
 	/** Number of last stored requests */
@@ -302,8 +302,8 @@ public class RequestsMonitor implements Filter {
 	protected void action(Map<String,String> params) {
 		
 		//--- Parameter : clean all logs
-		if(params.get(ATTRIBUTE_NAME_CLEAN) != null) {
-			if("true".equals(params.get(ATTRIBUTE_NAME_CLEAN))) {
+		if(params.get(ATTRIBUTE_NAME_CLEAR) != null) {
+			if("true".equals(params.get(ATTRIBUTE_NAME_CLEAR))) {
 				logLines = new CircularStack(logSize);
 				topRequests = new TopRequests(topTenSize);
 				longestRequests = new LongestRequests(longestSize);
@@ -320,7 +320,7 @@ public class RequestsMonitor implements Filter {
 			int logSizeNew = parseInt( params.get(ATTRIBUTE_NAME_LOG_SIZE), logSize );
 			if(logSizeNew != logSize) {
 				this.logSize = logSizeNew;
-				logLines = new CircularStack(logSize);
+				logLines = new CircularStack(logLines, logSize);
 			}
 		}
 

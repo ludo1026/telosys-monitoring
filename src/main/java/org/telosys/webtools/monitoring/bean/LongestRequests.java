@@ -41,6 +41,25 @@ public class LongestRequests {
 	public LongestRequests(int size) {
 		this.size = size;
 	}
+
+	/**
+	 * Copy constructor.
+	 * @param longestRequests original data to copy
+	 * @param size Numbers of requests.
+	 */
+	public LongestRequests(LongestRequests longestRequests, int size) {
+		this.size = size;
+		List<Request> requests = longestRequests.getAllDescending();
+		int pos = 0;
+		for(Request request : requests) {
+			if(pos >= size) {
+				break;
+			}
+			requestsByURLs.put(request.getURL(), request);
+			pos++;
+		}
+		calculateMinimum();
+	}
 	
 	/**
 	 * The new request is added if the execution time is longest than the existing requests.

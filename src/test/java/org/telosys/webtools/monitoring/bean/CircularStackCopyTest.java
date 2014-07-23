@@ -22,24 +22,27 @@ import java.util.List;
 import org.junit.Test;
 import org.telosys.webtools.monitoring.bean.CircularStack;
 
-public class CircularStackTest {
+public class CircularStackCopyTest {
 	
 	@Test
-	public void testAscendant() {
+	public void testResizePlus1() {
 		CircularStack circularStack = new CircularStack(3);
-		assertEquals(0, circularStack.getAllAscending().size());
+		CircularStack circularStack2 = new CircularStack(circularStack, circularStack.size+1);
+		assertEquals(0, circularStack2.getAllAscending().size());
 		
 		Request r1 = new Request();
 		r1.setCountLongTimeRequests(1);
 		circularStack.add(r1);
-		List<Request> results = circularStack.getAllAscending();
+		circularStack2 = new CircularStack(circularStack, circularStack.size+1);
+		List<Request> results = circularStack2.getAllAscending();
 		assertEquals(1, results.size());
 		assertEquals(r1, results.get(0));
 		
 		Request r2 = new Request();
 		r2.setCountLongTimeRequests(2);
 		circularStack.add(r2);
-		results = circularStack.getAllAscending();
+		circularStack2 = new CircularStack(circularStack, circularStack.size+1);
+		results = circularStack2.getAllAscending();
 		assertEquals(2, results.size());
 		assertEquals(r1, results.get(0));
 		assertEquals(r2, results.get(1));
@@ -47,7 +50,8 @@ public class CircularStackTest {
 		Request r3 = new Request();
 		r3.setCountLongTimeRequests(3);
 		circularStack.add(r3);
-		results = circularStack.getAllAscending();
+		circularStack2 = new CircularStack(circularStack, circularStack.size+1);
+		results = circularStack2.getAllAscending();
 		assertEquals(3, results.size());
 		assertEquals(r1, results.get(0));
 		assertEquals(r2, results.get(1));
@@ -56,7 +60,8 @@ public class CircularStackTest {
 		Request r4 = new Request();
 		r4.setCountLongTimeRequests(4);
 		circularStack.add(r4);
-		results = circularStack.getAllAscending();
+		circularStack2 = new CircularStack(circularStack, circularStack.size+1);
+		results = circularStack2.getAllAscending();
 		assertEquals(3, results.size());
 		assertEquals(r2, results.get(0));
 		assertEquals(r3, results.get(1));
@@ -65,62 +70,61 @@ public class CircularStackTest {
 		Request r5 = new Request();
 		r5.setCountLongTimeRequests(5);
 		circularStack.add(r5);
-		results = circularStack.getAllAscending();
+		circularStack2 = new CircularStack(circularStack, circularStack.size+1);
+		results = circularStack2.getAllAscending();
 		assertEquals(3, results.size());
 		assertEquals(r3, results.get(0));
 		assertEquals(r4, results.get(1));
 		assertEquals(r5, results.get(2));
-		
 	}
 
 	@Test
-	public void testDescendant() {
+	public void testResizeMoins1() {
 		CircularStack circularStack = new CircularStack(3);
-		assertEquals(0, circularStack.getAllDescending().size());
+		CircularStack circularStack2;
 		
 		Request r1 = new Request();
 		r1.setCountLongTimeRequests(1);
 		circularStack.add(r1);
-		List<Request> results = circularStack.getAllDescending();
+		circularStack2 = new CircularStack(circularStack, circularStack.size-1);
+		List<Request> results = circularStack2.getAllAscending();
 		assertEquals(1, results.size());
 		assertEquals(r1, results.get(0));
 		
 		Request r2 = new Request();
 		r2.setCountLongTimeRequests(2);
 		circularStack.add(r2);
-		results = circularStack.getAllDescending();
+		circularStack2 = new CircularStack(circularStack, circularStack.size-1);
+		results = circularStack2.getAllAscending();
 		assertEquals(2, results.size());
-		assertEquals(r2, results.get(0));
-		assertEquals(r1, results.get(1));
+		assertEquals(r1, results.get(0));
+		assertEquals(r2, results.get(1));
 		
 		Request r3 = new Request();
 		r3.setCountLongTimeRequests(3);
 		circularStack.add(r3);
-		results = circularStack.getAllDescending();
-		assertEquals(3, results.size());
-		assertEquals(r3, results.get(0));
+		circularStack2 = new CircularStack(circularStack, circularStack.size-1);
+		results = circularStack2.getAllAscending();
+		assertEquals(2, results.size());
+		assertEquals(r1, results.get(0));
 		assertEquals(r2, results.get(1));
-		assertEquals(r1, results.get(2));
 		
 		Request r4 = new Request();
 		r4.setCountLongTimeRequests(4);
 		circularStack.add(r4);
-		results = circularStack.getAllDescending();
-		assertEquals(3, results.size());
-		assertEquals(r4, results.get(0));
+		circularStack2 = new CircularStack(circularStack, circularStack.size-1);
+		results = circularStack2.getAllAscending();
+		assertEquals(2, results.size());
+		assertEquals(r2, results.get(0));
 		assertEquals(r3, results.get(1));
-		assertEquals(r2, results.get(2));
 
 		Request r5 = new Request();
 		r5.setCountLongTimeRequests(5);
 		circularStack.add(r5);
-		results = circularStack.getAllDescending();
-		assertEquals(3, results.size());
-		assertEquals(r5, results.get(0));
+		circularStack2 = new CircularStack(circularStack, circularStack.size-1);
+		results = circularStack2.getAllAscending();
+		assertEquals(2, results.size());
+		assertEquals(r3, results.get(0));
 		assertEquals(r4, results.get(1));
-		assertEquals(r3, results.get(2));
-		
-		
 	}
-	
 }

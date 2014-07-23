@@ -59,6 +59,28 @@ public class TopRequests {
 	}
 	
 	/**
+	 * Copy constructor.
+	 * @param topRequests Original data to copy.
+	 * @param size Number of requests in the array.
+	 */
+	public TopRequests(TopRequests topRequests, int size) {
+		this.requests = new Request[size];
+		List<Request> requests = topRequests.getAllDescending();
+		int pos = 0;
+		for(Request request : requests) {
+			if(pos >= size) {
+				break;
+			}
+			this.requests[pos] = request;
+			pos++;
+		}
+		if(pos >= size) {
+			this.completed = true;
+		}
+		this.minimum = getMinimum();
+	}
+
+	/**
 	 * Add new request.
 	 * @param request Request
 	 */
@@ -94,9 +116,13 @@ public class TopRequests {
 		// Calcule la position et la durée d'exécution de la requête la plus courte dans le tableau des requêtes
 		ValuePosition minimum = new ValuePosition();
 		for(int pos=0; pos<requests.length; pos++) {
-			if(minimum.value == null || requests[pos].getElapsedTime() < minimum.value) {
+			Request request = requests[pos];
+			if(request == null) {
+				continue;
+			}
+			if(minimum.value == null || request.getElapsedTime() < minimum.value) {
 				minimum.position = pos;
-				minimum.value = requests[pos].getElapsedTime();
+				minimum.value = request.getElapsedTime();
 			}
 		}
 		return minimum;

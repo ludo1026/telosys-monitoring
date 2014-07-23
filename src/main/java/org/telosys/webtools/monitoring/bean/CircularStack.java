@@ -16,6 +16,7 @@
 package org.telosys.webtools.monitoring.bean;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -42,10 +43,33 @@ public class CircularStack {
 	}
 	
 	/**
+	 * Copy constructor.
+	 * @param size Number of stored requests
+	 */
+	public CircularStack(CircularStack circularStack, int size) {	
+		this.size = size;
+		this.arrays = new Request[size];
+		int pos = 0;
+		for(Request request : circularStack.getAllAscending()) {
+			if(pos >= size) {
+				break;
+			}
+			this.arrays[pos] = request;
+			pos++;
+		}
+		if(pos >= size) {
+			this.completed = true;
+			this.nextIndex = 0;
+		} else {
+			this.nextIndex = pos;
+		}
+	}
+	
+	/**
 	 * Add new request in the stack.
 	 * @param request Request.
 	 */
-	public void add(Request request) {
+	public synchronized void add(Request request) {
 		int index = getNextIndice();
 		this.arrays[index] = request;
 	}
@@ -54,7 +78,7 @@ public class CircularStack {
 	 * Next position in the requests array.
 	 * @return position
 	 */
-	public synchronized int getNextIndice() {
+	private int getNextIndice() {
 		int index = this.nextIndex;
 		this.nextIndex++;
 		if(this.nextIndex >= this.size) {

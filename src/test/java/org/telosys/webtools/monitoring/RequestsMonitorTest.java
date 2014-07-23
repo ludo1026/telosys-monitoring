@@ -121,7 +121,7 @@ public class RequestsMonitorTest {
 				+ RequestsMonitor.ATTRIBUTE_NAME_TOP_TEN_SIZE + "=401&"
 				+ RequestsMonitor.ATTRIBUTE_NAME_LONGEST_SIZE + "=501&"
 				+ RequestsMonitor.ATTRIBUTE_NAME_TRACE_FLAG + "=true&"
-				+ RequestsMonitor.ATTRIBUTE_NAME_CLEAN + "=true");
+				+ RequestsMonitor.ATTRIBUTE_NAME_CLEAR + "=true");
 		
 		// When
 		Map<String,String> params = requestsMonitor.getParameters(request);
@@ -132,7 +132,7 @@ public class RequestsMonitorTest {
 		assertEquals("401", params.get(RequestsMonitor.ATTRIBUTE_NAME_TOP_TEN_SIZE));
 		assertEquals("501", params.get(RequestsMonitor.ATTRIBUTE_NAME_LONGEST_SIZE));
 		assertEquals("true", params.get(RequestsMonitor.ATTRIBUTE_NAME_TRACE_FLAG));
-		assertEquals("true", params.get(RequestsMonitor.ATTRIBUTE_NAME_CLEAN));
+		assertEquals("true", params.get(RequestsMonitor.ATTRIBUTE_NAME_CLEAR));
 	}
 
 	@Test
@@ -147,7 +147,7 @@ public class RequestsMonitorTest {
 				+ RequestsMonitor.ATTRIBUTE_NAME_TOP_TEN_SIZE + "&"
 				+ RequestsMonitor.ATTRIBUTE_NAME_LONGEST_SIZE + "&"
 				+ RequestsMonitor.ATTRIBUTE_NAME_TRACE_FLAG + "=" + "&"
-				+ RequestsMonitor.ATTRIBUTE_NAME_CLEAN + "");
+				+ RequestsMonitor.ATTRIBUTE_NAME_CLEAR + "");
 		
 		// When
 		Map<String,String> params = requestsMonitor.getParameters(request);
@@ -158,7 +158,7 @@ public class RequestsMonitorTest {
 		assertNull(params.get(RequestsMonitor.ATTRIBUTE_NAME_TOP_TEN_SIZE));
 		assertNull(params.get(RequestsMonitor.ATTRIBUTE_NAME_LONGEST_SIZE));
 		assertNull(params.get(RequestsMonitor.ATTRIBUTE_NAME_TRACE_FLAG));
-		assertNull(params.get(RequestsMonitor.ATTRIBUTE_NAME_CLEAN));
+		assertNull(params.get(RequestsMonitor.ATTRIBUTE_NAME_CLEAR));
 	}
 	
 	@Test

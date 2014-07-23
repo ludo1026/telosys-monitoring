@@ -58,6 +58,7 @@ Actions
 -------
 
 You can change monitoring values with parameters in the "/monitoring" URL :
+* ```action=reset``` : reset to the defaults parameters defined in the web.xml and clear all logs
 * ```action=clear``` : clear all logs
 * ```duration=``` : request duration threshold
 * ```log_size=``` : number of requests in the log
