@@ -227,7 +227,7 @@ public class RequestsMonitor implements Filter {
 	 */
 	protected void doFilterStandard(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
 		HttpServletRequest httpRequest = (HttpServletRequest) request ;
-		countAllRequest++ ;
+		incrementCountAllRequest();
 		final long startTime = getTime();
 		try {
 			//--- Chain (nothing to stop here)
@@ -236,10 +236,24 @@ public class RequestsMonitor implements Filter {
 		} finally {
 			final long elapsedTime = getTime() - startTime;
 			if ( elapsedTime > durationThreshold ) {
-				countLongTimeRequests++ ;
+				incrementCountLongTimeRequests();
 				logRequest(httpRequest, startTime, elapsedTime);
 			}
 		}
+	}
+	
+	/**
+	 * Increment count all requests.
+	 */
+	protected synchronized void incrementCountAllRequest() {
+		countAllRequest++;
+	}
+
+	/**
+	 * Increment count all long time requests.
+	 */
+	protected synchronized void incrementCountLongTimeRequests() {
+		countLongTimeRequests++;
 	}
 
 	/**
@@ -351,7 +365,7 @@ public class RequestsMonitor implements Filter {
 			int topTenSizeNew = parseInt( params.get(ATTRIBUTE_NAME_BY_TIME_SIZE), topTenSize );
 			if(topTenSizeNew != topTenSize) {
 				this.topTenSize = topTenSizeNew;
-				topRequests = new TopRequests(topRequests, topTenSize);
+				topRequests = new TopRequests(topTenSize);
 			}
 		}
 

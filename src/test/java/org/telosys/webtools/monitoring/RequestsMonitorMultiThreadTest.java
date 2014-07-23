@@ -27,19 +27,30 @@ import java.util.concurrent.TimeUnit;
 import javax.servlet.ServletException;
 
 import org.junit.Test;
+import org.telosys.webtools.monitoring.bean.CircularStack;
+import org.telosys.webtools.monitoring.bean.LongestRequests;
+import org.telosys.webtools.monitoring.bean.TopRequests;
 
-public class RequestsMonitor2Test {
+public class RequestsMonitorMultiThreadTest {
 	
 	@Test
 	public void initDefaults() throws ServletException, InterruptedException {
 		System.out.println("Test - Begin");
 		
 		RequestsMonitor requestsMonitor = new RequestsMonitor();
+		requestsMonitor.durationThreshold = -999;
+		requestsMonitor.logSize = 100;
+		requestsMonitor.logLines = new CircularStack(requestsMonitor.logSize);
+		requestsMonitor.topTenSize = 100;
+		requestsMonitor.topRequests = new TopRequests(requestsMonitor.topTenSize);
+		requestsMonitor.longestSize = 100;
+		requestsMonitor.longestRequests = new LongestRequests(requestsMonitor.longestSize);
+		requestsMonitor.traceFlag = false;
 		
-		int nbRequestsBySender = 2000;
-		int nbThreads = 10;
-		int delayRequestSending = 10;
-		int delayAction = 5;
+		int nbRequestsBySender = 50;
+		int nbThreads = 1000;
+		int delayRequestSending = 0;
+		int delayAction = 2;
 		
 		Counter counter = new Counter();
 		Random random = new Random();
@@ -51,7 +62,7 @@ public class RequestsMonitor2Test {
 		List<SendRequest> sendRequests = new ArrayList<SendRequest>();
 		for(int i=0; i<nbThreads; i++) {
 			SendRequest sendRequest = 
-					new SendRequest(startSignal, doneSignal, requestsMonitor, counter, random, nbRequestsBySender, delayRequestSending);
+					new SendRequest(i, startSignal, doneSignal, requestsMonitor, counter, random, nbRequestsBySender, delayRequestSending);
 			sendRequests.add(sendRequest);
 			Thread thread = new Thread(sendRequest);
 			threads.add(thread);
@@ -72,10 +83,16 @@ public class RequestsMonitor2Test {
 		doneSignal.await();
 		
 		System.out.println("Test - End");
+		
+		System.out.println("countAllRequest: " + requestsMonitor.countAllRequest);
+		System.out.println("countLongTimeRequests: " + requestsMonitor.countLongTimeRequests);
+		System.out.println("logLines: " + requestsMonitor.logLines.getAllAscending().size());
+		System.out.println("by_time: " + requestsMonitor.topRequests.getAllDescending().size());
+		System.out.println("by_url : " + requestsMonitor.longestRequests.getAllDescending().size());
 	}
 	
 	public void randomActions(RequestsMonitor requestsMonitor) {
-		System.out.println("Action : clear");
+		// System.out.println("Action : clear");
 		requestsMonitor.action(getParams("action", "clear"));
 	}
 	
