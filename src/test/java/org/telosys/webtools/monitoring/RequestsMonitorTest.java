@@ -118,10 +118,10 @@ public class RequestsMonitorTest {
 		when(request.getQueryString()).thenReturn(
 				RequestsMonitor.ATTRIBUTE_NAME_DURATION_THRESHOLD + "=201&"
 				+ RequestsMonitor.ATTRIBUTE_NAME_LOG_SIZE + "=301&"
-				+ RequestsMonitor.ATTRIBUTE_NAME_TOP_TEN_SIZE + "=401&"
-				+ RequestsMonitor.ATTRIBUTE_NAME_LONGEST_SIZE + "=501&"
+				+ RequestsMonitor.ATTRIBUTE_NAME_BY_TIME_SIZE + "=401&"
+				+ RequestsMonitor.ATTRIBUTE_NAME_BY_URL_SIZE + "=501&"
 				+ RequestsMonitor.ATTRIBUTE_NAME_TRACE_FLAG + "=true&"
-				+ RequestsMonitor.ATTRIBUTE_NAME_CLEAR + "=true");
+				+ RequestsMonitor.ATTRIBUTE_NAME_ACTION + "="+RequestsMonitor.ATTRIBUTE_VALUE_ACTION_CLEAR);
 		
 		// When
 		Map<String,String> params = requestsMonitor.getParameters(request);
@@ -129,10 +129,10 @@ public class RequestsMonitorTest {
 		// Then
 		assertEquals("201", params.get(RequestsMonitor.ATTRIBUTE_NAME_DURATION_THRESHOLD));
 		assertEquals("301", params.get(RequestsMonitor.ATTRIBUTE_NAME_LOG_SIZE));
-		assertEquals("401", params.get(RequestsMonitor.ATTRIBUTE_NAME_TOP_TEN_SIZE));
-		assertEquals("501", params.get(RequestsMonitor.ATTRIBUTE_NAME_LONGEST_SIZE));
+		assertEquals("401", params.get(RequestsMonitor.ATTRIBUTE_NAME_BY_TIME_SIZE));
+		assertEquals("501", params.get(RequestsMonitor.ATTRIBUTE_NAME_BY_URL_SIZE));
 		assertEquals("true", params.get(RequestsMonitor.ATTRIBUTE_NAME_TRACE_FLAG));
-		assertEquals("true", params.get(RequestsMonitor.ATTRIBUTE_NAME_CLEAR));
+		assertEquals(RequestsMonitor.ATTRIBUTE_VALUE_ACTION_CLEAR, params.get(RequestsMonitor.ATTRIBUTE_NAME_ACTION));
 	}
 
 	@Test
@@ -144,10 +144,10 @@ public class RequestsMonitorTest {
 		when(request.getQueryString()).thenReturn(
 				RequestsMonitor.ATTRIBUTE_NAME_DURATION_THRESHOLD + "=&"
 				+ RequestsMonitor.ATTRIBUTE_NAME_LOG_SIZE + "=1&"
-				+ RequestsMonitor.ATTRIBUTE_NAME_TOP_TEN_SIZE + "&"
-				+ RequestsMonitor.ATTRIBUTE_NAME_LONGEST_SIZE + "&"
+				+ RequestsMonitor.ATTRIBUTE_NAME_BY_TIME_SIZE + "&"
+				+ RequestsMonitor.ATTRIBUTE_NAME_BY_URL_SIZE + "&"
 				+ RequestsMonitor.ATTRIBUTE_NAME_TRACE_FLAG + "=" + "&"
-				+ RequestsMonitor.ATTRIBUTE_NAME_CLEAR + "");
+				+ RequestsMonitor.ATTRIBUTE_NAME_ACTION + "");
 		
 		// When
 		Map<String,String> params = requestsMonitor.getParameters(request);
@@ -155,10 +155,10 @@ public class RequestsMonitorTest {
 		// Then
 		assertNull(params.get(RequestsMonitor.ATTRIBUTE_NAME_DURATION_THRESHOLD));
 		assertEquals("1", params.get(RequestsMonitor.ATTRIBUTE_NAME_LOG_SIZE));
-		assertNull(params.get(RequestsMonitor.ATTRIBUTE_NAME_TOP_TEN_SIZE));
-		assertNull(params.get(RequestsMonitor.ATTRIBUTE_NAME_LONGEST_SIZE));
+		assertNull(params.get(RequestsMonitor.ATTRIBUTE_NAME_BY_TIME_SIZE));
+		assertNull(params.get(RequestsMonitor.ATTRIBUTE_NAME_BY_URL_SIZE));
 		assertNull(params.get(RequestsMonitor.ATTRIBUTE_NAME_TRACE_FLAG));
-		assertNull(params.get(RequestsMonitor.ATTRIBUTE_NAME_CLEAR));
+		assertNull(params.get(RequestsMonitor.ATTRIBUTE_NAME_ACTION));
 	}
 	
 	@Test
@@ -179,8 +179,8 @@ public class RequestsMonitorTest {
 		Map<String,String> params = new HashMap<String,String>();
 		params.put(RequestsMonitor.ATTRIBUTE_NAME_DURATION_THRESHOLD, "201");
 		params.put(RequestsMonitor.ATTRIBUTE_NAME_LOG_SIZE, "301");
-		params.put(RequestsMonitor.ATTRIBUTE_NAME_TOP_TEN_SIZE, "401");
-		params.put(RequestsMonitor.ATTRIBUTE_NAME_LONGEST_SIZE, "501");
+		params.put(RequestsMonitor.ATTRIBUTE_NAME_BY_TIME_SIZE, "401");
+		params.put(RequestsMonitor.ATTRIBUTE_NAME_BY_URL_SIZE, "501");
 		params.put(RequestsMonitor.ATTRIBUTE_NAME_TRACE_FLAG, "true");
 		
 		// When
@@ -216,8 +216,8 @@ public class RequestsMonitorTest {
 		Map<String,String> params = new HashMap<String,String>();
 		params.put(RequestsMonitor.ATTRIBUTE_NAME_DURATION_THRESHOLD, "200");
 		params.put(RequestsMonitor.ATTRIBUTE_NAME_LOG_SIZE, "300");
-		params.put(RequestsMonitor.ATTRIBUTE_NAME_TOP_TEN_SIZE, "400");
-		params.put(RequestsMonitor.ATTRIBUTE_NAME_LONGEST_SIZE, "500");
+		params.put(RequestsMonitor.ATTRIBUTE_NAME_BY_TIME_SIZE, "400");
+		params.put(RequestsMonitor.ATTRIBUTE_NAME_BY_URL_SIZE, "500");
 		params.put(RequestsMonitor.ATTRIBUTE_NAME_TRACE_FLAG, "false");
 		
 		// When

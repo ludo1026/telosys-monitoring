@@ -22,6 +22,7 @@ import java.net.UnknownHostException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +30,7 @@ import java.util.Map;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
@@ -45,16 +47,21 @@ import org.telosys.webtools.monitoring.bean.TopRequests;
  */
 public class RequestsMonitor implements Filter {
 
-	/** Clean all logs */
-	protected final static String ATTRIBUTE_NAME_CLEAR = "clear";
+	/** Action */
+	protected final static String ATTRIBUTE_NAME_ACTION = "action";
+	/** Action : Clean all logs */
+	protected final static String ATTRIBUTE_VALUE_ACTION_CLEAR = "clear";
+	/** Action : Reset values as defined in the web.xml */
+	protected final static String ATTRIBUTE_VALUE_ACTION_RESET = "reset";
+	
 	/** Execution time threshold */
 	protected final static String ATTRIBUTE_NAME_DURATION_THRESHOLD = "duration";
 	/** Number of last stored requests */
-	protected final static String ATTRIBUTE_NAME_LOG_SIZE           = "sizelog" ;
+	protected final static String ATTRIBUTE_NAME_LOG_SIZE           = "log_size" ;
 	/** Number of top longest requests */
-	protected final static String ATTRIBUTE_NAME_TOP_TEN_SIZE       = "sizetop" ;
+	protected final static String ATTRIBUTE_NAME_BY_TIME_SIZE       = "by_time_size" ;
 	/** Number of longest requests */
-	protected final static String ATTRIBUTE_NAME_LONGEST_SIZE       = "sizelongest" ;
+	protected final static String ATTRIBUTE_NAME_BY_URL_SIZE       = "by_url_size" ;
 	/** Indicates if information are displayed in the output console of the server */
 	protected final static String ATTRIBUTE_NAME_TRACE_FLAG         = "trace" ;
 	
@@ -242,6 +249,23 @@ public class RequestsMonitor implements Filter {
 	 * @param elapsedTime Execution time
 	 */
 	protected final void logRequest(HttpServletRequest httpRequest, long startTime, long elapsedTime ) {
+		Request request = createRequest(httpRequest, startTime, elapsedTime);
+		
+		this.logLines.add(request);
+		this.topRequests.add(request);
+		this.longestRequests.add(request);
+		
+		trace(request);
+	}
+
+	/**
+	 * Create request
+	 * @param httpRequest HTTP request
+	 * @param startTime Start date
+	 * @param elapsedTime Request execution time
+	 * @return
+	 */
+	protected Request createRequest(HttpServletRequest httpRequest, long startTime, long elapsedTime) {
 		Request request = new Request();
 		request.setElapsedTime(elapsedTime);
 		request.setStartTime(startTime);
@@ -251,12 +275,7 @@ public class RequestsMonitor implements Filter {
 		request.setServletPath(httpRequest.getServletPath());
 		request.setCountAllRequest(countAllRequest);
 		request.setCountLongTimeRequests(countLongTimeRequests);
-		
-		this.logLines.add(request);
-		this.topRequests.add(request);
-		this.longestRequests.add(request);
-		
-		trace(request);
+		return request;
 	}
 	
 	/**
@@ -302,11 +321,14 @@ public class RequestsMonitor implements Filter {
 	protected void action(Map<String,String> params) {
 		
 		//--- Parameter : clean all logs
-		if(params.get(ATTRIBUTE_NAME_CLEAR) != null) {
-			if("true".equals(params.get(ATTRIBUTE_NAME_CLEAR))) {
-				logLines = new CircularStack(logSize);
-				topRequests = new TopRequests(topTenSize);
-				longestRequests = new LongestRequests(longestSize);
+		if(params.get(ATTRIBUTE_NAME_ACTION) != null) {
+			if(ATTRIBUTE_VALUE_ACTION_CLEAR.equals(params.get(ATTRIBUTE_NAME_ACTION))) {
+				logLines = new CircularStack(logLines, logSize);
+				topRequests = new TopRequests(topRequests, topTenSize);
+				longestRequests = new LongestRequests(longestRequests, longestSize);
+			}
+			if(ATTRIBUTE_VALUE_ACTION_RESET.equals(params.get(ATTRIBUTE_NAME_ACTION))) {
+				// reset
 			}
 		}
 		
@@ -325,20 +347,20 @@ public class RequestsMonitor implements Filter {
 		}
 
 		//--- Parameter : memory top ten size 
-		if(params.get(ATTRIBUTE_NAME_TOP_TEN_SIZE) != null) {
-			int topTenSizeNew = parseInt( params.get(ATTRIBUTE_NAME_TOP_TEN_SIZE), topTenSize );
+		if(params.get(ATTRIBUTE_NAME_BY_TIME_SIZE) != null) {
+			int topTenSizeNew = parseInt( params.get(ATTRIBUTE_NAME_BY_TIME_SIZE), topTenSize );
 			if(topTenSizeNew != topTenSize) {
 				this.topTenSize = topTenSizeNew;
-				topRequests = new TopRequests(topTenSize);
+				topRequests = new TopRequests(topRequests, topTenSize);
 			}
 		}
 
 		//--- Parameter : memory longest requests size 
-		if(params.get(ATTRIBUTE_NAME_LONGEST_SIZE) != null) {
-			int longestSizeNew = parseInt( params.get(ATTRIBUTE_NAME_LONGEST_SIZE), longestSize );
+		if(params.get(ATTRIBUTE_NAME_BY_URL_SIZE) != null) {
+			int longestSizeNew = parseInt( params.get(ATTRIBUTE_NAME_BY_URL_SIZE), longestSize );
 			if(longestSizeNew != longestSize) {
 				this.longestSize = longestSizeNew;
-				longestRequests = new LongestRequests(longestSize);
+				longestRequests = new LongestRequests(longestRequests, longestSize);
 			}
 		}
 		
