@@ -271,7 +271,16 @@ public class RequestsMonitor implements Filter {
 	 * @see Filter#doFilter(ServletRequest, ServletResponse, FilterChain)
 	 */
 	public void doFilter(ServletRequest servletRequest, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-		if( isRequestForReportPage(servletRequest) ) {
+		boolean isRequestForReportPage = false;
+		
+		try {
+			isRequestForReportPage = isRequestForReportPage(servletRequest);
+		} catch(Throwable throwable) {
+			System.err.println("Error during request detection : "+throwable.getMessage());
+			throwable.printStackTrace(System.err);
+		}
+		
+		if( isRequestForReportPage ) {
 			// Report page
 			dispatch( (HttpServletRequest) servletRequest, (HttpServletResponse) response );
 		}
@@ -307,18 +316,31 @@ public class RequestsMonitor implements Filter {
 	 * @throws ServletException Error
 	 */
 	protected void doFilterStandard(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-		incrementCountAllRequest();
-		final long startTime = getTime();
+		long startTime = 0;
+
+		try {
+			incrementCountAllRequest();
+			startTime = getTime();
+		} catch(Throwable throwable) {
+			System.err.println("Error during monitoring : "+throwable.getMessage());
+			throwable.printStackTrace(System.err);
+		}
+		
 		try {
 			
 			//--- Chain (nothing to stop here)
 			chain.doFilter(request, response);
 			
 		} finally {
-			final long elapsedTime = getTime() - startTime;
-			if ( elapsedTime > durationThreshold ) {
-				incrementCountLongTimeRequests();
-				logRequest(request, startTime, elapsedTime);
+			try {
+				final long elapsedTime = getTime() - startTime;
+				if ( elapsedTime > durationThreshold ) {
+					incrementCountLongTimeRequests();
+					logRequest(request, startTime, elapsedTime);
+				}
+			} catch(Throwable throwable) {
+				System.err.println("Error during monitoring : "+throwable.getMessage());
+				throwable.printStackTrace(System.err);
 			}
 		}
 	}
