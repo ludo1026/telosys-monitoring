@@ -804,7 +804,7 @@ public class RequestsMonitor implements Filter {
 			out.println("body{font-family:monospace;font-size:13px;margin:0;padding:0}");
 			out.println("div{margin:10px 0}");
 			out.println(".title{width:100%;min-width:800px;margin:0;background-color:#bfbfbf;border-bottom:1px solid #8f8f8f;} .title h1{width:800px;margin:0 auto;padding:20px 0 0 20px;} .title .version{width:800px;margin:0 auto;padding:2px 0 2px 20px;font-size:13px;color:#4f4f4f;font-weight:bold;}");
-			out.println(".actionbar{width:100%;min-width:800px;margin:0;background-color:#f9f9f9;border-bottom:1px solid #bfbfbf;} .actionbar .content{width:800px;margin:0 auto;padding:5px;}");
+			out.println(".actionbar{width:100%;min-width:800px;margin:0;background-color:#f0f0f0;border-bottom:1px solid #bfbfbf;border-top:1px solid #ffffff;} .actionbar .content{width:800px;margin:0 auto;padding:5px;}");
 			out.println(".main{width:800px;margin:0 auto;}");
 			out.println(".started{color:#009900;font-weight:bold;} .stopped{color:#990000;font-weight:bold;}");
 			out.println("h2{font-size:15px;}");
