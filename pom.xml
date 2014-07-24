@@ -3,8 +3,8 @@
   <modelVersion>4.0.0</modelVersion>
   
   <name>telosys-webtools</name>
-  <groupId>org.telosys.webtools</groupId>
-  <artifactId>telosys-webtools</artifactId>
+  <groupId>org.telosys.webtools.monitoring</groupId>
+  <artifactId>telosys-monitoring</artifactId>
   <version>1.0.0</version>
   <packaging>jar</packaging>
   
