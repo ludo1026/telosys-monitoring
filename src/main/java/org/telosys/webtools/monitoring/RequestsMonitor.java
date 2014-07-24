@@ -276,8 +276,7 @@ public class RequestsMonitor implements Filter {
 		try {
 			isRequestForReportPage = isRequestForReportPage(servletRequest);
 		} catch(Throwable throwable) {
-			System.err.println("Error during request detection : "+throwable.getMessage());
-			throwable.printStackTrace(System.err);
+			manageError(throwable);
 		}
 		
 		if( isRequestForReportPage ) {
@@ -322,8 +321,7 @@ public class RequestsMonitor implements Filter {
 			incrementCountAllRequest();
 			startTime = getTime();
 		} catch(Throwable throwable) {
-			System.err.println("Error during monitoring : "+throwable.getMessage());
-			throwable.printStackTrace(System.err);
+			manageError(throwable);
 		}
 		
 		try {
@@ -339,9 +337,24 @@ public class RequestsMonitor implements Filter {
 					logRequest(request, startTime, elapsedTime);
 				}
 			} catch(Throwable throwable) {
-				System.err.println("Error during monitoring : "+throwable.getMessage());
-				throwable.printStackTrace(System.err);
+				manageError(throwable);
 			}
+		}
+	}
+	
+	/**
+	 * Manage the exception.
+	 * @param throwable Error
+	 */
+	protected void manageError(Throwable throwable) {
+		if(throwable == null) {
+			return;
+		}
+		try {
+			System.err.println("Error during monitoring : "+throwable.getClass().getName()+" : "+throwable.getMessage());
+			throwable.printStackTrace(System.err);
+		} catch(Throwable throwable2) {
+			// ignore this error
 		}
 	}
 	
@@ -468,7 +481,7 @@ public class RequestsMonitor implements Filter {
 		//--- Parameter : memory log size 
 		if(params.get(ATTRIBUTE_NAME_LOG_SIZE) != null) {
 			int logSizeNew = parseInt( params.get(ATTRIBUTE_NAME_LOG_SIZE), logSize );
-			if(logSizeNew != logSize) {
+			if(logSizeNew > 0 && logSizeNew != logSize) {
 				this.logSize = logSizeNew;
 				logLines = new CircularStack(logLines, logSize);
 			}
@@ -477,7 +490,7 @@ public class RequestsMonitor implements Filter {
 		//--- Parameter : memory top ten size 
 		if(params.get(ATTRIBUTE_NAME_BY_TIME_SIZE) != null) {
 			int topTenSizeNew = parseInt( params.get(ATTRIBUTE_NAME_BY_TIME_SIZE), topTenSize );
-			if(topTenSizeNew != topTenSize) {
+			if(topTenSizeNew > 0 && topTenSizeNew != topTenSize) {
 				this.topTenSize = topTenSizeNew;
 				topRequests = new TopRequests(topRequests, topTenSize);
 			}
@@ -486,7 +499,7 @@ public class RequestsMonitor implements Filter {
 		//--- Parameter : memory longest requests size 
 		if(params.get(ATTRIBUTE_NAME_BY_URL_SIZE) != null) {
 			int longestSizeNew = parseInt( params.get(ATTRIBUTE_NAME_BY_URL_SIZE), longestSize );
-			if(longestSizeNew != longestSize) {
+			if(longestSizeNew > 0 && longestSizeNew != longestSize) {
 				this.longestSize = longestSizeNew;
 				longestRequests = new LongestRequests(longestRequests, longestSize);
 			}
