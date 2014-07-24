@@ -375,7 +375,7 @@ public class RequestsMonitorTest {
 	}
 	
 	@Test
-	public void testReporting() throws IOException {
+	public void testReportingBrut() throws IOException {
 		// Given
 		RequestsMonitor requestsMonitor = spy(new RequestsMonitor());
 		
@@ -415,7 +415,7 @@ public class RequestsMonitorTest {
 		when(response.getWriter()).thenReturn(out);
 		
 		// When
-		requestsMonitor.reporting(response);
+		requestsMonitor.reportingBrut(response);
 		
 		// Then
 		verify(response).setContentType("text/plain");

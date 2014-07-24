@@ -15,6 +15,8 @@
  */
 package org.telosys.webtools.monitoring;
 
+import static org.junit.Assert.fail;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -32,22 +34,31 @@ import org.telosys.webtools.monitoring.bean.TopRequests;
 public class RequestsMonitorMultiThreadTest {
 	
 	@Test
+	public void initDefaultsWithErrorManagement() {
+		try {
+			initDefaults();
+		} catch(Throwable t) {
+			t.printStackTrace(System.err);
+			fail(t.getMessage());
+		}
+	}
+	
 	public void initDefaults() throws ServletException, InterruptedException {
 		System.out.println("Test - Begin");
 		
 		RequestsMonitor.InitValues initValues = new RequestsMonitor.InitValues();
 		initValues.durationThreshold = -999;
-		initValues.logSize = 10000000;
-		initValues.topTenSize = 1000000;
-		initValues.longestSize = 10000000;
+		initValues.logSize = 100;
+		initValues.topTenSize = 100;
+		initValues.longestSize = 100;
 		initValues.traceFlag = false;
 		
 		RequestsMonitor requestsMonitor = new RequestsMonitor();
 		requestsMonitor.initValues = initValues;
 		requestsMonitor.reset();
 		
-		int nbRequestsBySender = 100;
-		int nbThreads = 2000;
+		int nbRequestsBySender = 10;
+		int nbThreads = 1500;
 		int delayRequestSending = 0;
 		int delayAction = 2;
 		
