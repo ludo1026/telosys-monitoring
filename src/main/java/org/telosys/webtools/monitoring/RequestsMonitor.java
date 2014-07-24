@@ -628,7 +628,7 @@ public class RequestsMonitor implements Filter {
 			out.println("<script>");
 			out.println("function doRefresh(){document.location=document.location;}");
 			out.println("function doAction(action){document.location=document.location+'?action='+action;}");
-			out.println("function doParam(key,value){document.location=document.location+'?'+key+'='+value;}");
+			out.println("function doParam(key,value){if(key==null||key==''||value==null||value==''){return;}document.location=document.location+'?'+key+'='+value;}");
 			out.println("</script>");
 			
 			out.println("<div>");
