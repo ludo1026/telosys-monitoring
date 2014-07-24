@@ -47,6 +47,9 @@ import org.telosys.webtools.monitoring.bean.TopRequests;
  */
 public class RequestsMonitor implements Filter {
 
+	/** Numéro de version */
+	protected final static String VERSION = "v1.8";
+	
 	/** Action */
 	protected final static String ATTRIBUTE_NAME_ACTION = "action";
 	/** Action : Clean all logs */
@@ -800,7 +803,7 @@ public class RequestsMonitor implements Filter {
 			out.println("<style>");
 			out.println("body{font-family:monospace;font-size:13px;margin:0;padding:0}");
 			out.println("div{margin:10px 0}");
-			out.println(".title{width:100%;min-width:800px;margin:0;background-color:#bfbfbf;border-bottom:1px solid #8f8f8f;} .title h1{width:800px;margin:0 auto;padding:20px;}");
+			out.println(".title{width:100%;min-width:800px;margin:0;background-color:#bfbfbf;border-bottom:1px solid #8f8f8f;} .title h1{width:800px;margin:0 auto;padding:20px 0 0 20px;} .title .version{width:800px;margin:0 auto;padding:2px 0 2px 20px;font-size:13px;color:#4f4f4f;font-weight:bold;}");
 			out.println(".actionbar{width:100%;min-width:800px;margin:0;background-color:#f9f9f9;border-bottom:1px solid #bfbfbf;} .actionbar .content{width:800px;margin:0 auto;padding:5px;}");
 			out.println(".main{width:800px;margin:0 auto;}");
 			out.println(".started{color:#009900;font-weight:bold;} .stopped{color:#990000;font-weight:bold;}");
@@ -809,7 +812,7 @@ public class RequestsMonitor implements Filter {
 			out.println("</head>");
 			out.println("<body>");
 
-			out.println("<div class='title'><h1>Telosys Monitoring</h1></div>");
+			out.println("<div class='title'><h1>Telosys Monitoring</h1><div class='version'>"+VERSION+"</div></div>");
 
 			addActionBar(out);
 			

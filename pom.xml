@@ -5,7 +5,7 @@
   <name>telosys-webtools</name>
   <groupId>org.telosys.webtools</groupId>
   <artifactId>telosys-monitoring</artifactId>
-  <version>1.0.0</version>
+  <version>1.8</version>
   <packaging>jar</packaging>
   
   <dependencies>
