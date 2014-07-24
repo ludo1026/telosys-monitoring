@@ -533,12 +533,20 @@ public class RequestsMonitor implements Filter {
 		
 		return isMakingAction;
 	}
-	
+
 	/**
 	 * Reports the current status in plain text
 	 * @param response HTTP response
 	 */
 	protected final void reporting (HttpServletResponse response) {
+		reportingHtml(response);
+	}
+	
+	/**
+	 * Reports the current status in plain text
+	 * @param response HTTP response
+	 */
+	protected final void reportingBrut (HttpServletResponse response) {
 		response.setContentType("text/plain");
 		
 		//--- Prevent caching
@@ -599,6 +607,99 @@ public class RequestsMonitor implements Filter {
 		}
 	}
 
+
+	/**
+	 * Reports the current status in plain text
+	 * @param response HTTP response
+	 */
+	protected final void reportingHtml (HttpServletResponse response) {
+		response.setContentType("text/html");
+		
+		//--- Prevent caching
+		response.setHeader("Pragma", "no-cache"); // Set standard HTTP/1.0 no-cache header.
+		response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate"); // Set standard HTTP/1.1 no-cache header.
+		response.setDateHeader ("Expires", 0); // Prevents caching on proxies
+		
+		final String date = format( new Date() ) ;
+		PrintWriter out;
+		try {
+			out = response.getWriter();
+
+			out.println("<script>");
+			out.println("function doRefresh(){document.location=document.location;}");
+			out.println("function doAction(action){document.location=document.location+'?action='+action;}");
+			out.println("function doParam(key,value){document.location=document.location+'?'+key+'='+value;}");
+			out.println("</script>");
+			
+			out.println("<div>");
+			out.println("<input type='button' value='Refresh' onclick='doRefresh()'/>");
+			out.println(" &nbsp; &nbsp; | &nbsp; &nbsp; ");
+			out.println("<select id='key'>");
+			out.println("<option value=''></option>");
+			out.println("<option value='"+ATTRIBUTE_NAME_DURATION_THRESHOLD+"'>Duration threshold</option>");
+			out.println("<option value='"+ATTRIBUTE_NAME_LOG_SIZE+"'>Log size</option>");
+			out.println("<option value='"+ATTRIBUTE_NAME_BY_TIME_SIZE+"'>Top requests by Time size</option>");
+			out.println("<option value='"+ATTRIBUTE_NAME_BY_URL_SIZE+"'>Top requests by URL size</option>");
+			out.println("</select>");
+			out.println("<input type='text' id='value' value=''/>");
+			out.println("<input type='button' value='Modify' onclick='doParam(document.getElementById(\"key\").value,document.getElementById(\"value\").value)'/>");
+			out.println(" &nbsp; &nbsp; | &nbsp; &nbsp; ");
+			out.println("<input type='button' value='Clear logs' onclick='doAction(\"clear\")'/>");
+			out.println(" &nbsp; &nbsp; | &nbsp; &nbsp; ");
+			out.println("<input type='button' value='Reset' onclick='doAction(\"reset\")'/>");
+			out.println("</div>");
+			
+			out.println("<pre>");
+			out.println("Requests monitoring status (" + date + ")");
+			out.println("IP address : " + ipAddress);
+			out.println("Hostname : " + hostname );
+			out.println(" ");
+			
+			out.println("Duration threshold : " + durationThreshold );
+			out.println("Log in memory size : " + logSize + " lines" );	
+			out.println("Top requests by time : " + topTenSize + " lines" );	
+			out.println("Top requests by URL : " + longestSize + " lines" );	
+			out.println(" ");
+			
+			out.println("Initialization date/time : " + initializationDate );
+			out.println("Total requests count     : " + countAllRequest);
+			out.println("Long time requests count : " + countLongTimeRequests );
+			out.println(" ");
+			
+			List<Request> requests = logLines.getAllAscending(); 
+			out.println("Last longest requests : " );
+			for ( Request request : requests ) {
+				if(request != null) {
+					out.println(request.toString());
+				}
+			}
+			
+			requests = topRequests.getAllDescending(); 
+			out.println(" ");
+			out.println("Top requests by time : " );
+			for ( Request request : requests ) {
+				if(request != null) {
+					out.println(request.toStringWithoutCounting());
+				}
+			}
+			
+			requests = longestRequests.getAllDescending(); 
+			out.println(" ");
+			out.println("Top requests by URL : " );
+			for ( Request request : requests ) {
+				if(request != null) {
+					out.println(request.toStringWithoutCounting());
+				}
+			}
+			
+			out.println("</pre>");
+			out.close();
+		} catch (IOException e) {
+			throw new RuntimeException("RequestMonitor error : cannot get writer");
+		}
+	}
+
+	
 	/**
 	 * Log the request in the output console.
 	 * @param request Request.
