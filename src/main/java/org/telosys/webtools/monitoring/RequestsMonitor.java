@@ -290,23 +290,6 @@ public class RequestsMonitor implements Filter {
 	}
 	
 	/**
-	 * Indicates if the request is to access to the report page.
-	 * @param httpRequest HTTP request.
-	 * @return boolean.
-	 */
-	protected boolean isRequestForReportPage(ServletRequest servletRequest) {
-		if(!(servletRequest instanceof HttpServletRequest)) {
-			return false;
-		}
-		if(reportingReqPath == null || "".equals(reportingReqPath.trim())) {
-			return false;
-		}
-		HttpServletRequest httpRequest = (HttpServletRequest) servletRequest;
-		String pathInfo = httpRequest.getServletPath();
-		return (pathInfo != null && pathInfo.startsWith(reportingReqPath));
-	}
-	
-	/**
 	 * Standard "doFilter" method with HTTP request statistics.
 	 * @param request HTTP request
 	 * @param response HTTP response
@@ -356,6 +339,23 @@ public class RequestsMonitor implements Filter {
 		} catch(Throwable throwable2) {
 			// ignore this error
 		}
+	}
+
+	/**
+	 * Indicates if the request is to access to the report page.
+	 * @param httpRequest HTTP request.
+	 * @return boolean.
+	 */
+	protected boolean isRequestForReportPage(ServletRequest servletRequest) {
+		if(!(servletRequest instanceof HttpServletRequest)) {
+			return false;
+		}
+		if(reportingReqPath == null || "".equals(reportingReqPath.trim())) {
+			return false;
+		}
+		HttpServletRequest httpRequest = (HttpServletRequest) servletRequest;
+		String pathInfo = httpRequest.getServletPath();
+		return (pathInfo != null && pathInfo.startsWith(reportingReqPath));
 	}
 	
 	/**
@@ -421,8 +421,19 @@ public class RequestsMonitor implements Filter {
 	 */
 	protected void dispatch(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
 		Map<String,String> params = getParameters(httpServletRequest);
-		action(params);
-		reporting(httpServletResponse);
+		boolean isMakingAction = action(params);
+		if(isMakingAction) {
+			// Redirection to the default reporting url
+			String redirectURL = httpServletRequest.getRequestURL().toString();
+			try {
+				httpServletResponse.sendRedirect(redirectURL);
+			} catch (IOException e) {
+				manageError(e);
+			}
+		} else {
+			// Report page
+			reporting(httpServletResponse);
+		}
 	}
 	
 	/**
@@ -459,27 +470,33 @@ public class RequestsMonitor implements Filter {
 	 * Actions on monitoring.
 	 * @param params Parameters
 	 */
-	protected void action(Map<String,String> params) {
+	protected boolean action(Map<String,String> params) {
+		
+		boolean isMakingAction = false;
 		
 		//--- Parameter : clean all logs
 		if(params.get(ATTRIBUTE_NAME_ACTION) != null) {
 			if(ATTRIBUTE_VALUE_ACTION_CLEAR.equals(params.get(ATTRIBUTE_NAME_ACTION))) {
+				isMakingAction = true;
 				logLines = new CircularStack(this.logSize);
 				topRequests = new TopRequests(this.topTenSize);
 				longestRequests = new LongestRequests(this.longestSize);
 			}
 			if(ATTRIBUTE_VALUE_ACTION_RESET.equals(params.get(ATTRIBUTE_NAME_ACTION))) {
+				isMakingAction = true;
 				reset();
 			}
 		}
 		
 		//--- Parameter : request duration threshold
 		if(params.get(ATTRIBUTE_NAME_DURATION_THRESHOLD) != null) {
+			isMakingAction = true;
 			durationThreshold = parseInt( params.get(ATTRIBUTE_NAME_DURATION_THRESHOLD), durationThreshold );
 		}
 		
 		//--- Parameter : memory log size 
 		if(params.get(ATTRIBUTE_NAME_LOG_SIZE) != null) {
+			isMakingAction = true;
 			int logSizeNew = parseInt( params.get(ATTRIBUTE_NAME_LOG_SIZE), logSize );
 			if(logSizeNew > 0 && logSizeNew != logSize) {
 				this.logSize = logSizeNew;
@@ -489,6 +506,7 @@ public class RequestsMonitor implements Filter {
 
 		//--- Parameter : memory top ten size 
 		if(params.get(ATTRIBUTE_NAME_BY_TIME_SIZE) != null) {
+			isMakingAction = true;
 			int topTenSizeNew = parseInt( params.get(ATTRIBUTE_NAME_BY_TIME_SIZE), topTenSize );
 			if(topTenSizeNew > 0 && topTenSizeNew != topTenSize) {
 				this.topTenSize = topTenSizeNew;
@@ -498,6 +516,7 @@ public class RequestsMonitor implements Filter {
 
 		//--- Parameter : memory longest requests size 
 		if(params.get(ATTRIBUTE_NAME_BY_URL_SIZE) != null) {
+			isMakingAction = true;
 			int longestSizeNew = parseInt( params.get(ATTRIBUTE_NAME_BY_URL_SIZE), longestSize );
 			if(longestSizeNew > 0 && longestSizeNew != longestSize) {
 				this.longestSize = longestSizeNew;
@@ -507,9 +526,12 @@ public class RequestsMonitor implements Filter {
 		
 		//--- Parameter : trace
 		if(params.get(ATTRIBUTE_NAME_TRACE_FLAG) != null) {
+			isMakingAction = true;
 			String traceParam = params.get(ATTRIBUTE_NAME_TRACE_FLAG);
 			traceFlag = "true".equalsIgnoreCase(traceParam) ;
 		}
+		
+		return isMakingAction;
 	}
 	
 	/**
