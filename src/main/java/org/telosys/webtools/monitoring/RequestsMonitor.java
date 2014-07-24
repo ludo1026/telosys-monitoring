@@ -558,7 +558,8 @@ public class RequestsMonitor implements Filter {
 			
 			out.println("Duration threshold : " + durationThreshold );
 			out.println("Log in memory size : " + logSize + " lines" );	
-			out.println("Top longest requests in memory size : " + topTenSize + " lines" );	
+			out.println("Top requests by time : " + topTenSize + " lines" );	
+			out.println("Top requests by URL : " + longestSize + " lines" );	
 			out.println(" ");
 			
 			out.println("Initialization date/time : " + initializationDate );
@@ -576,7 +577,7 @@ public class RequestsMonitor implements Filter {
 			
 			requests = topRequests.getAllDescending(); 
 			out.println(" ");
-			out.println("Top longest requests : " );
+			out.println("Top requests by time : " );
 			for ( Request request : requests ) {
 				if(request != null) {
 					out.println(request.toStringWithoutCounting());
@@ -585,7 +586,7 @@ public class RequestsMonitor implements Filter {
 			
 			requests = longestRequests.getAllDescending(); 
 			out.println(" ");
-			out.println("Longest requests : " );
+			out.println("Top requests by URL : " );
 			for ( Request request : requests ) {
 				if(request != null) {
 					out.println(request.toStringWithoutCounting());

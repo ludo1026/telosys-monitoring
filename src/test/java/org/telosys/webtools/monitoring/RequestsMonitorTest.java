@@ -431,17 +431,18 @@ public class RequestsMonitorTest {
 		verify(out).println("Hostname : " + requestsMonitor.hostname );
 		verify(out).println("Duration threshold : " + requestsMonitor.durationThreshold );
 		verify(out).println("Log in memory size : " + requestsMonitor.logSize + " lines");
-		verify(out).println("Top longest requests in memory size : " + requestsMonitor.topTenSize + " lines");
+		verify(out).println("Top requests by time : " + requestsMonitor.topTenSize + " lines");
+		verify(out).println("Top requests by URL : " + requestsMonitor.longestSize + " lines");
 		verify(out).println("Initialization date/time : " + requestsMonitor.initializationDate );
 		verify(out).println("Total requests count     : " + requestsMonitor.countAllRequest);
 		verify(out).println("Long time requests count : " + requestsMonitor.countLongTimeRequests );
 		verify(out).println("Last longest requests : " );
 		verify(out).println("1970/01/01 01:00:11 - [ 1 / 5 ] - 12 ms - requestURL1?queryString1");
 		verify(out).println("1970/01/01 01:00:21 - [ 2 / 10 ] - 22 ms - requestURL2?queryString2");
-		verify(out).println("Top longest requests : " );
+		verify(out).println("Top requests by time : " );
+		verify(out).println("Top requests by URL : " );
 		verify(out, times(2)).println("1970/01/01 01:00:11 - 12 ms - requestURL1?queryString1");
 		verify(out, times(2)).println("1970/01/01 01:00:21 - 22 ms - requestURL2?queryString2");
-		verify(out).println("Longest requests : " );
 	}
 	
 }
