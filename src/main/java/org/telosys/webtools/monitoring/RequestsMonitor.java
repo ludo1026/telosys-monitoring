@@ -53,6 +53,10 @@ public class RequestsMonitor implements Filter {
 	protected final static String ATTRIBUTE_VALUE_ACTION_CLEAR = "clear";
 	/** Action : Reset values as defined in the web.xml */
 	protected final static String ATTRIBUTE_VALUE_ACTION_RESET = "reset";
+	/** Action : Stop monitoring */
+	protected final static String ATTRIBUTE_VALUE_ACTION_STOP = "stop";
+	/** Action : Start monitoring */
+	protected final static String ATTRIBUTE_VALUE_ACTION_START = "start";
 	
 	/** Execution time threshold */
 	protected final static String ATTRIBUTE_NAME_DURATION_THRESHOLD = "duration";
@@ -87,6 +91,8 @@ public class RequestsMonitor implements Filter {
 	protected String  reportingReqPath      = "/monitor" ;
 	/** Indicates if information are displayed in the output console of the server */
 	protected boolean traceFlag             = false ;
+	/** Indicates if the filter is activated */
+	protected boolean activated             = true ;
 	
 	/** Initialization date */
 	protected String initializationDate     = "???" ;
@@ -127,6 +133,8 @@ public class RequestsMonitor implements Filter {
 		protected String  reportingReqPath      = "/monitor" ;
 		/** Indicates if information are displayed in the output console of the server */
 		protected boolean traceFlag             = false ;
+		/** Indicates if the filter is activated */
+		protected boolean activated             = true ;
 		
 		/** Count all requests */
 		protected long   countAllRequest        = 0 ; 
@@ -158,6 +166,12 @@ public class RequestsMonitor implements Filter {
 	 */
 	protected void initValues(FilterConfig filterConfig) throws ServletException {
 		this.initValues = new InitValues();
+
+		//--- Parameter : activated
+		String activatedParam = filterConfig.getInitParameter("activated");
+		if ( activatedParam != null ) {
+			this.initValues.activated = activatedParam.equalsIgnoreCase("true") ;
+		}
 		
 		//--- Parameter : duration threshold
 		this.initValues.durationThreshold = parseInt( filterConfig.getInitParameter("duration"), DEFAULT_DURATION_THRESHOLD );
@@ -197,6 +211,9 @@ public class RequestsMonitor implements Filter {
 		//--- Parameter : duration threshold
 		durationThreshold = this.initValues.durationThreshold;
 
+		//--- Parameter : activated
+		activated = this.initValues.activated;
+		
 		//--- Parameter : memory log size 
 		logSize = this.initValues.logSize;
 		logLines = new CircularStack(logSize);
@@ -271,8 +288,8 @@ public class RequestsMonitor implements Filter {
 	 * @see Filter#doFilter(ServletRequest, ServletResponse, FilterChain)
 	 */
 	public void doFilter(ServletRequest servletRequest, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+		// Check if this request is to display the report page
 		boolean isRequestForReportPage = false;
-		
 		try {
 			isRequestForReportPage = isRequestForReportPage(servletRequest);
 		} catch(Throwable throwable) {
@@ -284,20 +301,46 @@ public class RequestsMonitor implements Filter {
 			dispatch( (HttpServletRequest) servletRequest, (HttpServletResponse) response );
 		}
 		else {
-			// Standard "doFilter" method
-			doFilterStandard(servletRequest, response, chain);
+			
+			// Check if monitoring is activated
+			if(activated == false) {
+				
+				// "doFilter" method without request monitoring
+				doFilterWithoutMonitoring(servletRequest, response, chain);
+				
+			} else {
+				
+				// "doFilter" method with request monitoring
+				doFilterWithMonitoring(servletRequest, response, chain);
+				
+			}
 		}
 	}
-	
+
 	/**
-	 * Standard "doFilter" method with HTTP request statistics.
+	 * "doFilter" method without request monitoring.
 	 * @param request HTTP request
 	 * @param response HTTP response
 	 * @param chain Filter chain
 	 * @throws IOException Error
 	 * @throws ServletException Error
 	 */
-	protected void doFilterStandard(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+	protected void doFilterWithoutMonitoring(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+		
+		//--- Chain (nothing to stop here)
+		chain.doFilter(request, response);
+		
+	}
+	
+	/**
+	 * "doFilter" method with request monitoring.
+	 * @param request HTTP request
+	 * @param response HTTP response
+	 * @param chain Filter chain
+	 * @throws IOException Error
+	 * @throws ServletException Error
+	 */
+	protected void doFilterWithMonitoring(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
 		long startTime = 0;
 
 		try {
@@ -486,6 +529,14 @@ public class RequestsMonitor implements Filter {
 				isMakingAction = true;
 				reset();
 			}
+			if(ATTRIBUTE_VALUE_ACTION_STOP.equals(params.get(ATTRIBUTE_NAME_ACTION))) {
+				isMakingAction = true;
+				this.activated = false;
+			}
+			if(ATTRIBUTE_VALUE_ACTION_START.equals(params.get(ATTRIBUTE_NAME_ACTION))) {
+				isMakingAction = true;
+				this.activated = true;
+			}
 		}
 		
 		//--- Parameter : request duration threshold
@@ -608,16 +659,22 @@ public class RequestsMonitor implements Filter {
 	}
 	
 	/**
-	 * Add action bar.
+	 * Add action bar Javascript.
 	 * @param out Output
 	 */
-	protected final void addActionBar(PrintWriter out) {
+	protected final void addActionBarJS(PrintWriter out) {
 		out.println("<script>");
 		out.println("function doRefresh(){document.location=document.location;}");
 		out.println("function doAction(action){document.location=document.location+'?action='+action;}");
 		out.println("function doParam(key,value){if(key==null||key==''||value==null||value==''){return;}document.location=document.location+'?'+key+'='+value;}");
 		out.println("</script>");
-		
+	}
+	
+	/**
+	 * Add action bar.
+	 * @param out Output
+	 */
+	protected final void addActionBar(PrintWriter out) {
 		out.println("<div class='actionbar'>");
 		out.println("<div class='content'>");
 		out.println("<input type='button' value='Refresh' onclick='doRefresh()'/>");
@@ -635,6 +692,12 @@ public class RequestsMonitor implements Filter {
 		out.println("<input type='button' value='Clear logs' onclick='doAction(\"clear\")'/>");
 		out.println(" | ");
 		out.println("<input type='button' value='Reset' onclick='doAction(\"reset\")'/>");
+		out.println(" | ");
+		if(activated) {
+			out.println("<input type='button' value=' Stop ' onclick='doAction(\""+ATTRIBUTE_VALUE_ACTION_STOP+"\")'/>");
+		} else {
+			out.println("<input type='button' value=' Start ' onclick='doAction(\""+ATTRIBUTE_VALUE_ACTION_START+"\")'/>");
+		}
 		out.println("</div>");
 		out.println("</div>");
 	}
@@ -655,7 +718,10 @@ public class RequestsMonitor implements Filter {
 		PrintWriter out;
 		try {
 			out = response.getWriter();
-
+			
+			out.println("<html>");
+			out.println("<head>");
+			
 			addActionBar(out);
 			
 			out.println("<pre>");
@@ -702,6 +768,10 @@ public class RequestsMonitor implements Filter {
 			}
 			
 			out.println("</pre>");
+
+			out.println("</body>");
+			out.println("</html>");
+			
 			out.close();
 		} catch (IOException e) {
 			throw new RuntimeException("RequestMonitor error : cannot get writer");
@@ -726,14 +796,17 @@ public class RequestsMonitor implements Filter {
 			out = response.getWriter();
 
 			out.println("<html>");
+			out.println("<head>");
 			out.println("<style>");
 			out.println("body{font-family:monospace;font-size:13px;margin:0;padding:0}");
 			out.println("div{margin:10px 0}");
 			out.println(".title{width:100%;min-width:800px;margin:0;background-color:#bfbfbf;border-bottom:1px solid #8f8f8f;} .title h1{width:800px;margin:0 auto;padding:20px;}");
 			out.println(".actionbar{width:100%;min-width:800px;margin:0;background-color:#f9f9f9;border-bottom:1px solid #bfbfbf;} .actionbar .content{width:800px;margin:0 auto;padding:5px;}");
 			out.println(".main{width:800px;margin:0 auto;}");
+			out.println(".started{color:#009900;font-weight:bold;} .stopped{color:#990000;font-weight:bold;}");
 			out.println("h2{font-size:15px;}");
 			out.println("</style>");
+			out.println("</head>");
 			out.println("<body>");
 
 			out.println("<div class='title'><h1>Telosys Monitoring</h1></div>");
@@ -743,7 +816,12 @@ public class RequestsMonitor implements Filter {
 			out.println("<div class='main'>");
 
 			out.println("<div>");
-			out.println("Requests monitoring status (" + date + ")" + "<br/>");
+			out.println("Requests monitoring status (" + date + ") : ");
+			if(activated) {
+				out.println("<span class='started'>[Started]</span>");
+			} else {
+				out.println("<span class='stopped'>[Stopped]</span>");
+			}
 			out.println("<h2>Host</h2>" );
 			out.println("<ul>");
 			out.println("<li>IP address : " + ipAddress + "</li>");
@@ -806,6 +884,9 @@ public class RequestsMonitor implements Filter {
 			out.println("</div>");
 			
 			out.println("</div>");
+			
+			addActionBarJS(out);
+			
 			out.println("</body>");
 			out.println("</html>");
 			out.close();

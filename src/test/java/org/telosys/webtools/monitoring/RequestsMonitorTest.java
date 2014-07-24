@@ -75,6 +75,7 @@ public class RequestsMonitorTest {
 		assertFalse(requestsMonitor.traceFlag);
 		assertEquals("10.11.12.13", requestsMonitor.ipAddress);
 		assertEquals("hostname", requestsMonitor.hostname);
+		assertTrue(requestsMonitor.activated);
 	}
 	
 	@Test
@@ -94,6 +95,7 @@ public class RequestsMonitorTest {
 		when(filterConfig.getInitParameter("longestsize")).thenReturn("500");
 		when(filterConfig.getInitParameter("reporting")).thenReturn("/monitoring2");
 		when(filterConfig.getInitParameter("trace")).thenReturn("true");
+		when(filterConfig.getInitParameter("activated")).thenReturn("true");
 		
 		// When
 		requestsMonitor.init(filterConfig);
@@ -107,6 +109,29 @@ public class RequestsMonitorTest {
 		assertTrue(requestsMonitor.traceFlag);
 		assertEquals("10.11.12.13", requestsMonitor.ipAddress);
 		assertEquals("hostname", requestsMonitor.hostname);
+		assertTrue(requestsMonitor.activated);
+	}
+
+	@Test
+	public void initCustomized2() throws ServletException {
+		// Given
+		RequestsMonitor requestsMonitor = spy(new RequestsMonitor());
+
+		InetAddress adrLocale = mock(InetAddress.class);
+		doReturn(adrLocale).when(requestsMonitor).getLocalHost();
+		when(adrLocale.getHostAddress()).thenReturn("10.11.12.13");
+		when(adrLocale.getHostName()).thenReturn("hostname");
+		
+		FilterConfig filterConfig = mock(FilterConfig.class);
+		when(filterConfig.getInitParameter("trace")).thenReturn("false");
+		when(filterConfig.getInitParameter("activated")).thenReturn("false");
+		
+		// When
+		requestsMonitor.init(filterConfig);
+		
+		// Then
+		assertFalse(requestsMonitor.traceFlag);
+		assertFalse(requestsMonitor.activated);
 	}
 
 	@Test
@@ -235,6 +260,38 @@ public class RequestsMonitorTest {
 	}
 
 	@Test
+	public void testActionStop() {
+		// Given
+		RequestsMonitor requestsMonitor = new RequestsMonitor();
+		requestsMonitor.activated = true;
+		
+		Map<String,String> params = new HashMap<String,String>();
+		params.put(RequestsMonitor.ATTRIBUTE_NAME_ACTION, RequestsMonitor.ATTRIBUTE_VALUE_ACTION_STOP);
+		
+		// When
+		requestsMonitor.action(params);
+		
+		// Then
+		assertFalse(requestsMonitor.activated);
+	}
+
+	@Test
+	public void testActionStart() {
+		// Given
+		RequestsMonitor requestsMonitor = new RequestsMonitor();
+		requestsMonitor.activated = false;
+		
+		Map<String,String> params = new HashMap<String,String>();
+		params.put(RequestsMonitor.ATTRIBUTE_NAME_ACTION, RequestsMonitor.ATTRIBUTE_VALUE_ACTION_START);
+		
+		// When
+		requestsMonitor.action(params);
+		
+		// Then
+		assertTrue(requestsMonitor.activated);
+	}
+
+	@Test
 	public void testActionClean() {
 		// Given
 		RequestsMonitor requestsMonitor = new RequestsMonitor();
@@ -325,9 +382,10 @@ public class RequestsMonitorTest {
 	}
 	
 	@Test
-	public void testDoFilter() throws IOException, ServletException {
+	public void testDoFilterActivated() throws IOException, ServletException {
 		// Given
 		RequestsMonitor requestsMonitor = spy(new RequestsMonitor());
+		requestsMonitor.activated = true;
 		requestsMonitor.reportingReqPath = "/monitoring";
 		requestsMonitor.durationThreshold = -99999999;
 		
@@ -372,6 +430,54 @@ public class RequestsMonitorTest {
 		requests = requestsMonitor.longestRequests.getAllDescending();
 		assertEquals("1970/01/01 01:00:01 - [ 2 / 2 ] - 500 ms - http://request2.url?query2", requests.get(0).toString());
 		assertEquals("1970/01/01 01:00:00 - [ 1 / 1 ] - 500 ms - http://request1.url?query1", requests.get(1).toString());
+	}
+
+	@Test
+	public void testDoFilterDesactivated() throws IOException, ServletException {
+		// Given
+		RequestsMonitor requestsMonitor = spy(new RequestsMonitor());
+		requestsMonitor.activated = false;
+		requestsMonitor.reportingReqPath = "/monitoring";
+		requestsMonitor.durationThreshold = -99999999;
+		
+		when(requestsMonitor.getTime()).thenAnswer(new Answer<Long>() {
+			private long time = 0;
+			@Override
+			public Long answer(InvocationOnMock invocation) throws Throwable {
+				time += 500;
+				return time;
+			}
+		});
+		
+		HttpServletResponse response = mock(HttpServletResponse.class);
+		FilterChain chain = mock(FilterChain.class);
+		
+		HttpServletRequest httpRequest1 = mock(HttpServletRequest.class);
+		when(httpRequest1.getServletPath()).thenReturn("/test1");
+		when(httpRequest1.getRequestURL()).thenReturn(new StringBuffer("http://request1.url"));
+		when(httpRequest1.getQueryString()).thenReturn("query1");
+		
+		HttpServletRequest httpRequest2 = mock(HttpServletRequest.class);
+		when(httpRequest2.getServletPath()).thenReturn("/test2");
+		when(httpRequest2.getRequestURL()).thenReturn(new StringBuffer("http://request2.url"));
+		when(httpRequest2.getQueryString()).thenReturn("query2");
+		
+		// When
+		requestsMonitor.doFilter(httpRequest1, response, chain);
+		requestsMonitor.doFilter(httpRequest2, response, chain);
+		
+		// Then
+		verify(chain).doFilter(httpRequest1, response);
+		verify(chain).doFilter(httpRequest2, response);
+		
+		List<Request> requests = requestsMonitor.logLines.getAllAscending();
+		assertEquals(0, requests.size());
+		
+		requests = requestsMonitor.topRequests.getAllAscending();
+		assertEquals(0, requests.size());
+		
+		requests = requestsMonitor.longestRequests.getAllDescending();
+		assertEquals(0, requests.size());
 	}
 	
 	@Test

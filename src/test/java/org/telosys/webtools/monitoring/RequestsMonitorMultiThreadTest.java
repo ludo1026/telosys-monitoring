@@ -111,6 +111,14 @@ public class RequestsMonitorMultiThreadTest {
 			// clear
 			requestsMonitor.action(getParams("action", "clear"));
 		}
+		if(random.nextInt(50) == 25) {
+			// stop
+			requestsMonitor.action(getParams("action", "stop"));
+		}
+		if(random.nextInt(50) == 25) {
+			// start
+			requestsMonitor.action(getParams("action", "start"));
+		}
 		// log size
 		requestsMonitor.action(getParams(RequestsMonitor.ATTRIBUTE_NAME_LOG_SIZE, ""+(random.nextInt(150)+1)));
 		// by time size
