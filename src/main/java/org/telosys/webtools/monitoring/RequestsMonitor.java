@@ -539,7 +539,7 @@ public class RequestsMonitor implements Filter {
 	 * @param response HTTP response
 	 */
 	protected final void reporting (HttpServletResponse response) {
-		reportingHtml(response);
+		reportingHtml2(response);
 	}
 	
 	/**
@@ -606,7 +606,38 @@ public class RequestsMonitor implements Filter {
 			throw new RuntimeException("RequestMonitor error : cannot get writer");
 		}
 	}
-
+	
+	/**
+	 * Add action bar.
+	 * @param out Output
+	 */
+	protected final void addActionBar(PrintWriter out) {
+		out.println("<script>");
+		out.println("function doRefresh(){document.location=document.location;}");
+		out.println("function doAction(action){document.location=document.location+'?action='+action;}");
+		out.println("function doParam(key,value){if(key==null||key==''||value==null||value==''){return;}document.location=document.location+'?'+key+'='+value;}");
+		out.println("</script>");
+		
+		out.println("<div class='actionbar'>");
+		out.println("<div class='content'>");
+		out.println("<input type='button' value='Refresh' onclick='doRefresh()'/>");
+		out.println(" | ");
+		out.println("<select id='key'>");
+		out.println("<option value=''></option>");
+		out.println("<option value='"+ATTRIBUTE_NAME_DURATION_THRESHOLD+"'>Duration threshold</option>");
+		out.println("<option value='"+ATTRIBUTE_NAME_LOG_SIZE+"'>Log size</option>");
+		out.println("<option value='"+ATTRIBUTE_NAME_BY_TIME_SIZE+"'>Top requests by Time size</option>");
+		out.println("<option value='"+ATTRIBUTE_NAME_BY_URL_SIZE+"'>Top requests by URL size</option>");
+		out.println("</select>");
+		out.println("<input type='text' id='value' value=''/>");
+		out.println("<input type='button' value='Modify' onclick='doParam(document.getElementById(\"key\").value,document.getElementById(\"value\").value)'/>");
+		out.println(" | ");
+		out.println("<input type='button' value='Clear logs' onclick='doAction(\"clear\")'/>");
+		out.println(" | ");
+		out.println("<input type='button' value='Reset' onclick='doAction(\"reset\")'/>");
+		out.println("</div>");
+		out.println("</div>");
+	}
 
 	/**
 	 * Reports the current status in plain text
@@ -625,29 +656,7 @@ public class RequestsMonitor implements Filter {
 		try {
 			out = response.getWriter();
 
-			out.println("<script>");
-			out.println("function doRefresh(){document.location=document.location;}");
-			out.println("function doAction(action){document.location=document.location+'?action='+action;}");
-			out.println("function doParam(key,value){if(key==null||key==''||value==null||value==''){return;}document.location=document.location+'?'+key+'='+value;}");
-			out.println("</script>");
-			
-			out.println("<div>");
-			out.println("<input type='button' value='Refresh' onclick='doRefresh()'/>");
-			out.println(" &nbsp; &nbsp; | &nbsp; &nbsp; ");
-			out.println("<select id='key'>");
-			out.println("<option value=''></option>");
-			out.println("<option value='"+ATTRIBUTE_NAME_DURATION_THRESHOLD+"'>Duration threshold</option>");
-			out.println("<option value='"+ATTRIBUTE_NAME_LOG_SIZE+"'>Log size</option>");
-			out.println("<option value='"+ATTRIBUTE_NAME_BY_TIME_SIZE+"'>Top requests by Time size</option>");
-			out.println("<option value='"+ATTRIBUTE_NAME_BY_URL_SIZE+"'>Top requests by URL size</option>");
-			out.println("</select>");
-			out.println("<input type='text' id='value' value=''/>");
-			out.println("<input type='button' value='Modify' onclick='doParam(document.getElementById(\"key\").value,document.getElementById(\"value\").value)'/>");
-			out.println(" &nbsp; &nbsp; | &nbsp; &nbsp; ");
-			out.println("<input type='button' value='Clear logs' onclick='doAction(\"clear\")'/>");
-			out.println(" &nbsp; &nbsp; | &nbsp; &nbsp; ");
-			out.println("<input type='button' value='Reset' onclick='doAction(\"reset\")'/>");
-			out.println("</div>");
+			addActionBar(out);
 			
 			out.println("<pre>");
 			out.println("Requests monitoring status (" + date + ")");
@@ -699,6 +708,111 @@ public class RequestsMonitor implements Filter {
 		}
 	}
 
+	/**
+	 * Reports the current status in plain text
+	 * @param response HTTP response
+	 */
+	protected final void reportingHtml2 (HttpServletResponse response) {
+		response.setContentType("text/html");
+		
+		//--- Prevent caching
+		response.setHeader("Pragma", "no-cache"); // Set standard HTTP/1.0 no-cache header.
+		response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate"); // Set standard HTTP/1.1 no-cache header.
+		response.setDateHeader ("Expires", 0); // Prevents caching on proxies
+		
+		final String date = format( new Date() ) ;
+		PrintWriter out;
+		try {
+			out = response.getWriter();
+
+			out.println("<html>");
+			out.println("<style>");
+			out.println("body{font-family:monospace;font-size:13px;margin:0;padding:0}");
+			out.println("div{margin:10px 0}");
+			out.println(".title{width:100%;min-width:800px;margin:0;background-color:#bfbfbf;border-bottom:1px solid #8f8f8f;} .title h1{width:800px;margin:0 auto;padding:20px;}");
+			out.println(".actionbar{width:100%;min-width:800px;margin:0;background-color:#f9f9f9;border-bottom:1px solid #bfbfbf;} .actionbar .content{width:800px;margin:0 auto;padding:5px;}");
+			out.println(".main{width:800px;margin:0 auto;}");
+			out.println("h2{font-size:15px;}");
+			out.println("</style>");
+			out.println("<body>");
+
+			out.println("<div class='title'><h1>Telosys Monitoring</h1></div>");
+
+			addActionBar(out);
+			
+			out.println("<div class='main'>");
+
+			out.println("<div>");
+			out.println("Requests monitoring status (" + date + ")" + "<br/>");
+			out.println("<h2>Host</h2>" );
+			out.println("<ul>");
+			out.println("<li>IP address : " + ipAddress + "</li>");
+			out.println("<li>Hostname : " + hostname + "</li>");
+			out.println("</ul>");
+			out.println("</div>");
+			
+			out.println("<div>");
+			out.println("<h2>Configuration</h2>" );
+			out.println("<ul>");
+			out.println("<li>Duration threshold : " + durationThreshold + " ms</li>");
+			out.println("<li>Log in memory size : " + logSize + " lines</li>" );	
+			out.println("<li>Top requests by time : " + topTenSize + " lines</li>" );	
+			out.println("<li>Top requests by URL : " + longestSize + " lines</li>" );	
+			out.println("</ul></div>");
+			
+			out.println("<div>");
+			out.println("<h2>Monitoring</h2>" );
+			out.println("<ul>");
+			out.println("<li>Initialization date/time : " + initializationDate + "</li>");
+			out.println("<li>Total requests count     : " + countAllRequest + "</li>");
+			out.println("<li>Long time requests count : " + countLongTimeRequests + "</li>");
+			out.println("</ul></div>");
+			
+			out.println("<div>");
+			List<Request> requests = logLines.getAllAscending(); 
+			out.println("<h2>Last longest requests</h2>" );
+			out.println("<pre>");
+			for ( Request request : requests ) {
+				if(request != null) {
+					out.println(request.toString());
+				}
+			}
+			out.println("</pre>");
+			out.println("</div>");
+			
+			out.println("<div>");
+			requests = topRequests.getAllDescending(); 
+			out.println(" ");
+			out.println("<h2>Top requests by time</h2>" );
+			out.println("<pre>");
+			for ( Request request : requests ) {
+				if(request != null) {
+					out.println(request.toStringWithoutCounting());
+				}
+			}
+			out.println("</pre>");
+			out.println("</div>");
+			
+			out.println("<div>");
+			requests = longestRequests.getAllDescending(); 
+			out.println("<h2>Top requests by URL</h2>" );
+			out.println("<pre>");
+			for ( Request request : requests ) {
+				if(request != null) {
+					out.println(request.toStringWithoutCounting());
+				}
+			}
+			out.println("</pre>");
+			out.println("</div>");
+			
+			out.println("</div>");
+			out.println("</body>");
+			out.println("</html>");
+			out.close();
+		} catch (IOException e) {
+			throw new RuntimeException("RequestMonitor error : cannot get writer");
+		}
+	}
 	
 	/**
 	 * Log the request in the output console.

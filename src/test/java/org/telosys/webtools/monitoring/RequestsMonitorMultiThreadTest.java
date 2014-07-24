@@ -37,17 +37,17 @@ public class RequestsMonitorMultiThreadTest {
 		
 		RequestsMonitor.InitValues initValues = new RequestsMonitor.InitValues();
 		initValues.durationThreshold = -999;
-		initValues.logSize = 100000;
-		initValues.topTenSize = 100000;
-		initValues.longestSize = 100000;
+		initValues.logSize = 10000000;
+		initValues.topTenSize = 1000000;
+		initValues.longestSize = 10000000;
 		initValues.traceFlag = false;
 		
 		RequestsMonitor requestsMonitor = new RequestsMonitor();
 		requestsMonitor.initValues = initValues;
 		requestsMonitor.reset();
 		
-		int nbRequestsBySender = 50;
-		int nbThreads = 1000;
+		int nbRequestsBySender = 100;
+		int nbThreads = 2000;
 		int delayRequestSending = 0;
 		int delayAction = 2;
 		
